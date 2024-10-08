@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Exported Scene</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <style>
     body, html { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; font-family: Arial, sans-serif; }
     #renderCanvas { width: 100%; height: 100%; touch-action: none; }
@@ -117,7 +118,20 @@
       cursor: pointer;
       z-index: 1000;
     }
-
+    #vrButton {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 1000;
+      font-size: 16px;
+    }
+      
     #preloader {
       position: fixed;
       top: 0;
@@ -189,11 +203,11 @@
   </div>
   
   <button id="muteButton">🔇 Unmute</button>
+  <button id="vrButton">Enter VR</button>
   <!-- Babylon.js CDN -->
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
   <script>
-    const preloader = document.getElementById('preloader');
     // Get the canvas element
     const canvas = document.getElementById('renderCanvas');
 
@@ -255,17 +269,17 @@
             mesh.position = BABYLON.Vector3.Zero();
           }
         });
-        // Hide the preloader after the model is loaded
+                // Hide the preloader after the model is loaded
         preloader.classList.add('hidden');
       })
       .catch((error) => {
         console.error('Error loading model file:', error);
         alert('Error loading model file: ' + error.message);
-        preloader.classList.add('hidden');
+            preloader.classList.add('hidden');
       });
 
     // Prepare waypoints and rotations
-    const waypoints = [{"x":0.35100707403422293,"y":0.18024953749231543,"z":-2.548524444000537,"rotation":{"_isDirty":true,"_x":-0.027912359773123552,"_y":-0.00004145737864838297,"_z":-0.00000115762425113601,"_w":0.9996103733214465},"interactions":[]},{"x":1.2601506241018177,"y":0.18024953751127593,"z":-2.2871135856389673,"rotation":{"_isDirty":true,"_x":-0.03018453507636585,"_y":-0.20632466802072288,"_z":-0.006367926217430065,"_w":0.9779971752127159},"interactions":[]},{"x":2.914925517695998,"y":0.15057484364311005,"z":-1.6691823522192752,"rotation":{"_isDirty":true,"_x":-0.016136772614506485,"_y":-0.7225756487554675,"_z":-0.01687665816674684,"_w":0.6908973981745233},"interactions":[{"id":"interaction-1728361749007","type":"info","data":{"text":"Audio will play soon. Unmute."}}]},{"x":3.4859497291263457,"y":0.10157607343778273,"z":0.08177820137532217,"rotation":{"_isDirty":true,"_x":0.01179002442857532,"_y":0.8814243552795653,"_z":0.022032679216950176,"_w":-0.4716637173776454},"interactions":[{"id":"interaction-1728361593219","type":"audio","data":{"url":"https://cdn.pixabay.com/download/audio/2023/07/15/audio_75571dd5ba.mp3?filename=scandinavianz-tranvik-free-download-158258.mp3"}}]},{"x":2.537915735381895,"y":0.08806371543452286,"z":1.873480853152477,"rotation":{"_isDirty":true,"_x":0.003405191317620568,"_y":-0.8574420352834429,"_z":0.005674515946022473,"_w":0.5145380070216932},"interactions":[]},{"x":1.6094714141634394,"y":0.8466518707675013,"z":3.2568909590461512,"rotation":{"_isDirty":true,"_x":-0.0226520063436028,"_y":0.977215602244377,"_z":-0.14086788047531715,"_w":-0.15713940813545382},"interactions":[]},{"x":-1.4674050889335242,"y":0.7432277858127436,"z":1.763678988189047,"rotation":{"_isDirty":true,"_x":0.032772960767474664,"_y":0.8537407393444251,"_z":-0.05413608577271002,"_w":0.5168384343713015},"interactions":[]},{"x":0.06569005096919157,"y":0.46945819305262176,"z":1.2431822477368575,"rotation":{"_isDirty":true,"_x":-0.0048568037644017995,"_y":0.9948036073878062,"_z":-0.057690689472770104,"_w":-0.08374949870631},"interactions":[{"id":"interaction-1728361721103","type":"info","data":{"text":"Test info pop up"}}]},{"x":0.9704612403251393,"y":0.3453198167517761,"z":-0.6406296077187641,"rotation":{"_isDirty":true,"_x":0.030943319892741603,"_y":-0.8102025416997705,"_z":0.04294670965754094,"_w":0.5837550278214642},"interactions":[]},{"x":0.08739537975114169,"y":0.29879628996747737,"z":-1.69890992280609,"rotation":{"_isDirty":true,"_x":0.042365250759444334,"_y":-0.42187592158610926,"_z":0.01973926412940128,"_w":0.905448095566825},"interactions":[]},{"x":-0.9683238918552701,"y":0.2789892654535821,"z":-2.065456647056107,"rotation":{"_isDirty":true,"_x":-0.0359010336521529,"_y":-0.11654932049660982,"_z":-0.00421574570165301,"_w":0.9925268757885928},"interactions":[]},{"x":-1.9773504921252316,"y":0.3384478760737514,"z":-1.7099786905426657,"rotation":{"_isDirty":true,"_x":-0.04559849810743161,"_y":0.08955191849443192,"_z":0.0041042443236950004,"_w":0.9949293372108617},"interactions":[]},{"x":-2.818754963017677,"y":0.3328741313808968,"z":-0.43115779699518064,"rotation":{"_isDirty":true,"_x":0.020696102020252575,"_y":0.46401151660987905,"_z":-0.010844722798409343,"_w":0.885520962937633},"interactions":[]}];
+    const waypoints = [{"x":0.35100707403422293,"y":0.18024953749231543,"z":-2.548524444000537,"rotation":{"_isDirty":true,"_x":-0.027912359773123552,"_y":-0.00004145737864838297,"_z":-0.00000115762425113601,"_w":0.9996103733214465},"interactions":[]},{"x":1.2601506241018177,"y":0.18024953751127593,"z":-2.2871135856389673,"rotation":{"_isDirty":true,"_x":-0.03018453507636585,"_y":-0.20632466802072288,"_z":-0.006367926217430065,"_w":0.9779971752127159},"interactions":[]},{"x":2.914925517695998,"y":0.15057484364311005,"z":-1.6691823522192752,"rotation":{"_isDirty":true,"_x":-0.016136772614506485,"_y":-0.7225756487554675,"_z":-0.01687665816674684,"_w":0.6908973981745233},"interactions":[{"id":"interaction-1728361749007","type":"info","data":{"text":"Audio will play soon. Unmute."}}]},{"x":3.4859497291263457,"y":0.10157607343778273,"z":0.08177820137532217,"rotation":{"_isDirty":true,"_x":0.01179002442857532,"_y":0.8814243552795653,"_z":0.022032679216950176,"_w":-0.4716637173776454},"interactions":[{"id":"interaction-1728361593219","type":"audio","data":{"url":"https://cdn.pixabay.com/download/audio/2023/07/15/audio_75571dd5ba.mp3?filename=scandinavianz-tranvik-free-download-158258.mp3"}}]},{"x":2.537915735381895,"y":0.08806371543452286,"z":1.873480853152477,"rotation":{"_isDirty":true,"_x":0.003405191317620568,"_y":-0.8574420352834429,"_z":0.005674515946022473,"_w":0.5145380070216932},"interactions":[]},{"x":1.6094714141634394,"y":0.8466518707675013,"z":3.2568909590461512,"rotation":{"_isDirty":true,"_x":-0.0226520063436028,"_y":0.977215602244377,"_z":-0.14086788047531715,"_w":-0.15713940813545382},"interactions":[]},{"x":-1.4674050889335242,"y":0.7432277858127436,"z":1.763678988189047,"rotation":{"_isDirty":true,"_x":0.03277296076747466,"_y":0.8537407393444248,"_z":-0.05413608577271001,"_w":0.5168384343713014},"interactions":[]},{"x":0.06569005096919157,"y":0.46945819305262176,"z":1.2431822477368575,"rotation":{"_isDirty":true,"_x":-0.0048568037644017995,"_y":0.9948036073878062,"_z":-0.057690689472770104,"_w":-0.08374949870631},"interactions":[{"id":"interaction-1728361721103","type":"info","data":{"text":"Test info pop up"}}]},{"x":0.9704612403251393,"y":0.3453198167517761,"z":-0.6406296077187641,"rotation":{"_isDirty":true,"_x":0.030943319892741596,"_y":-0.8102025416997702,"_z":0.04294670965754093,"_w":0.583755027821464},"interactions":[]},{"x":0.08739537975114169,"y":0.29879628996747737,"z":-1.69890992280609,"rotation":{"_isDirty":true,"_x":0.042365250759444334,"_y":-0.42187592158610926,"_z":0.01973926412940128,"_w":0.905448095566825},"interactions":[]},{"x":-0.9683238918552701,"y":0.2789892654535821,"z":-2.065456647056107,"rotation":{"_isDirty":true,"_x":-0.0359010336521529,"_y":-0.11654932049660982,"_z":-0.00421574570165301,"_w":0.9925268757885928},"interactions":[]},{"x":-1.9773504921252316,"y":0.3384478760737514,"z":-1.7099786905426657,"rotation":{"_isDirty":true,"_x":-0.04559849810743161,"_y":0.08955191849443192,"_z":0.0041042443236950004,"_w":0.9949293372108617},"interactions":[]},{"x":-2.818754963017677,"y":0.3328741313808968,"z":-0.43115779699518064,"rotation":{"_isDirty":true,"_x":0.020696102020252575,"_y":0.46401151660987905,"_z":-0.010844722798409343,"_w":0.885520962937633},"interactions":[]}];
     const controlPoints = waypoints.map(
       (wp) => new BABYLON.Vector3(wp.x, wp.y, wp.z)
     );
@@ -278,7 +292,7 @@
     if (controlPoints.length >= 2) {
       const positionCurve = BABYLON.Curve3.CreateCatmullRomSpline(
         controlPoints,
-        (waypoints.length - 1) * 20, // Increased resolution from 10 to 20
+        (waypoints.length - 1) * 20,
         false
       );
       path = positionCurve.getPoints();
@@ -291,9 +305,8 @@
     console.log(hotspots);
 
     hotspots.forEach(hotspot => {
-      // Assign default scale if necessary
       const scale = (hotspot.scale._x === 0 && hotspot.scale._y === 0 && hotspot.scale._z === 0)
-        ? new BABYLON.Vector3(1, 1, 1) // Default scale
+        ? new BABYLON.Vector3(1, 1, 1)
         : new BABYLON.Vector3(hotspot.scale._x, hotspot.scale._y, hotspot.scale._z);
 
       const sphere = BABYLON.MeshBuilder.CreateSphere(`hotspot-${hotspot.id}`, { diameter: 0.2 }, scene);
@@ -306,7 +319,6 @@
       material.emissiveColor = BABYLON.Color3.FromHexString(hotspot.color).scale(0.5);
       sphere.material = material;
 
-      // Make sure the hotspot is pickable by the camera
       sphere.isPickable = true;
 
       sphere.actionManager = new BABYLON.ActionManager(scene);
@@ -501,94 +513,113 @@
       }
     }
 
-    // Handle scroll events
-    window.addEventListener('wheel', (event) => {
+    // Handle scroll events for mouse and touch
+    function handleScroll(event) {
       if (animatingToPath) return;
 
-      if (userControl) {
-        animatingToPath = true;
-        userControl = false;
-
-        if (!camera.rotationQuaternion) {
-          camera.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(
-            camera.rotation.x,
-            camera.rotation.y,
-            camera.rotation.z
-          ).normalize();
-          camera.rotation.set(0, 0, 0);
-        }
-
-        const closestPointInfo = getClosestPointOnPath(camera.position, path);
-        const startIndex = closestPointInfo.index;
-
-        const targetPosition = path[startIndex];
-
-        let targetRotation = camera.rotationQuaternion.clone();
-        if (rotations.length >= 2 && path.length >= 2) {
-          const t = startIndex / (path.length - 1);
-          const totalSegments = waypoints.length - 1;
-          const segmentT = t * totalSegments;
-          const segmentIndex = Math.floor(segmentT);
-          const clampedSegmentIndex = Math.min(segmentIndex, totalSegments - 1);
-          const lerpFactor = segmentT - clampedSegmentIndex;
-
-          const r1 = rotations[clampedSegmentIndex];
-          const r2 = rotations[clampedSegmentIndex + 1] || rotations[rotations.length - 1];
-          targetRotation = BABYLON.Quaternion.Slerp(r1, r2, lerpFactor).normalize();
-        } else if (rotations.length === 1) {
-          targetRotation = rotations[0];
-        }
-
-        const positionAnimation = new BABYLON.Animation(
-          'cameraPositionAnimation',
-          'position',
-          60,
-          BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+      let delta = 0;
+      if (event.type === 'wheel') {
+        delta = event.deltaY;
+      } else if (event.type === 'touchmove' && event.touches.length === 2) {
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const dist = Math.hypot(
+          touch1.pageX - touch2.pageX,
+          touch1.pageY - touch2.pageY
         );
 
-        const positionKeys = [];
-        positionKeys.push({ frame: 0, value: camera.position.clone() });
-        positionKeys.push({ frame: 30, value: targetPosition.clone() });
-
-        positionAnimation.setKeys(positionKeys);
-
-        const easingFunction = new BABYLON.CubicEase();
-        easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-        positionAnimation.setEasingFunction(easingFunction);
-
-        const rotationAnimation = new BABYLON.Animation(
-          'cameraRotationAnimation',
-          'rotationQuaternion',
-          60,
-          BABYLON.Animation.ANIMATIONTYPE_QUATERNION,
-          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-
-        const currentRotation = camera.rotationQuaternion.clone();
-        rotationAnimation.setKeys([
-          { frame: 0, value: currentRotation },
-          { frame: 30, value: targetRotation },
-        ]);
-
-        rotationAnimation.setEasingFunction(easingFunction);
-
-        camera.animations = [];
-        camera.animations.push(positionAnimation);
-        camera.animations.push(rotationAnimation);
-
-        scene.beginAnimation(camera, 0, 30, false, 1, function () {
-          animatingToPath = false;
-          scrollPosition = startIndex;
-          scrollTarget = scrollPosition;
-        });
-      } else {
-        scrollTarget += event.deltaY * 0.1;
-
-        if (scrollTarget < 0) scrollTarget = 0;
-        if (scrollTarget > path.length - 1) scrollTarget = path.length - 1;
+        if (this.lastPinchDistance) {
+          delta = this.lastPinchDistance - dist;
+        }
+        this.lastPinchDistance = dist;
       }
-    });
+
+      if (delta !== 0) {
+        if (userControl) {
+          animatingToPath = true;
+          userControl = false;
+
+          if (!camera.rotationQuaternion) {
+            camera.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(
+              camera.rotation.x,
+              camera.rotation.y,
+              camera.rotation.z
+            ).normalize();
+            camera.rotation.set(0, 0, 0);
+          }
+
+          const closestPointInfo = getClosestPointOnPath(camera.position, path);
+          const startIndex = closestPointInfo.index;
+
+          const targetPosition = path[startIndex];
+
+          let targetRotation = camera.rotationQuaternion.clone();
+          if (rotations.length >= 2 && path.length >= 2) {
+            const t = startIndex / (path.length - 1);
+            const totalSegments = waypoints.length - 1;
+            const segmentT = t * totalSegments;
+            const segmentIndex = Math.floor(segmentT);
+            const clampedSegmentIndex = Math.min(segmentIndex, totalSegments - 1);
+            const lerpFactor = segmentT - clampedSegmentIndex;
+
+            const r1 = rotations[clampedSegmentIndex];
+            const r2 = rotations[clampedSegmentIndex + 1] || rotations[rotations.length - 1];
+            targetRotation = BABYLON.Quaternion.Slerp(r1, r2, lerpFactor).normalize();
+          } else if (rotations.length === 1) {
+            targetRotation = rotations[0];
+          }
+
+          const positionAnimation = new BABYLON.Animation(
+            'cameraPositionAnimation',
+            'position',
+            60,
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+          );
+
+          const positionKeys = [];
+          positionKeys.push({ frame: 0, value: camera.position.clone() });
+          positionKeys.push({ frame: 30, value: targetPosition.clone() });
+
+          positionAnimation.setKeys(positionKeys);
+
+          const easingFunction = new BABYLON.CubicEase();
+          easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+          positionAnimation.setEasingFunction(easingFunction);
+
+          const rotationAnimation = new BABYLON.Animation(
+            'cameraRotationAnimation',
+            'rotationQuaternion',
+            60,
+            BABYLON.Animation.ANIMATIONTYPE_QUATERNION,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+          );
+
+          const currentRotation = camera.rotationQuaternion.clone();
+          rotationAnimation.setKeys([
+            { frame: 0, value: currentRotation },
+            { frame: 30, value: targetRotation },
+          ]);
+
+          rotationAnimation.setEasingFunction(easingFunction);
+
+          camera.animations = [];
+          camera.animations.push(positionAnimation);
+          camera.animations.push(rotationAnimation);
+
+          scene.beginAnimation(camera, 0, 30, false, 1, function () {
+            animatingToPath = false;
+            scrollPosition = startIndex;
+            scrollTarget = scrollPosition;
+          });
+        } else {
+          scrollTarget += delta * 0.1;
+
+          if (scrollTarget < 0) scrollTarget = 0;
+          if (scrollTarget > path.length - 1) scrollTarget = path.length - 1;
+        }
+      }
+    }
 
     // Helper function to find the closest point on the path
     function getClosestPointOnPath(position, path) {
@@ -612,6 +643,56 @@
 
     // Active waypoints set
     const activeWaypoints = new Set();
+
+    // WebXR setup
+    const xr = scene.createDefaultXRExperienceAsync({
+      floorMeshes: [scene.getMeshByName("ground")],
+    });
+
+    xr.then((xrExperience) => {
+      const vrButton = document.getElementById('vrButton');
+      vrButton.addEventListener('click', () => {
+        xrExperience.enterXRAsync("immersive-vr", "local-floor");
+      });
+
+      // VR controller setup
+      xrExperience.input.onControllerAddedObservable.add((controller) => {
+        controller.onMotionControllerInitObservable.add((motionController) => {
+          const xr_ids = motionController.getComponentIds();
+          xr_ids.forEach((id) => {
+            const component = motionController.getComponent(id);
+            component.onButtonStateChangedObservable.add(() => {
+              if (component.pressed && component.id === 'a-button') {
+                adjustScroll(1); // Move forward
+              } else if (component.pressed && component.id === 'b-button') {
+                adjustScroll(-1); // Move backward
+              }
+            });
+          });
+        });
+      });
+
+      // VR movement
+      xrExperience.baseExperience.onStateChangedObservable.add((state) => {
+        if (state === BABYLON.WebXRState.IN_XR) {
+          scene.onBeforeRenderObservable.add(() => {
+            if (xrExperience.input.xrCamera) {
+              const cameraWorldMatrix = xrExperience.input.xrCamera.getWorldMatrix();
+              const cameraDirection = BABYLON.Vector3.TransformNormal(BABYLON.Vector3.Forward(), cameraWorldMatrix);
+              const movement = cameraDirection.scale(0.01 * scene.getEngine().getDeltaTime());
+              xrExperience.input.xrCamera.position.addInPlace(movement);
+            }
+          });
+        }
+      });
+    });
+
+    // Add event listeners for mouse, touch, and VR input
+    window.addEventListener('wheel', handleScroll, { passive: false });
+    window.addEventListener('touchmove', handleScroll, { passive: false });
+    window.addEventListener('touchend', () => {
+      this.lastPinchDistance = null;
+    });
 
     engine.runRenderLoop(function () {
       // Smoothly interpolate scrollPosition towards scrollTarget
@@ -750,6 +831,23 @@
         });
       }
     });
+
+    // Touch events for mobile devices
+    let touchStartY = 0;
+    canvas.addEventListener('touchstart', function(e) {
+      if (e.touches.length === 1) {
+        touchStartY = e.touches[0].pageY;
+      }
+    }, false);
+
+    canvas.addEventListener('touchmove', function(e) {
+      if (e.touches.length === 1) {
+        const touchEndY = e.touches[0].pageY;
+        const delta = touchStartY - touchEndY;
+        handleScroll({ deltaY: delta, type: 'touch' });
+        touchStartY = touchEndY;
+      }
+    }, false);
 
     // Resize
     window.addEventListener('resize', function () {
