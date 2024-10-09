@@ -655,7 +655,7 @@ function stopAudio(interactionData) {
     });
 
     // Load the model file
-    BABYLON.SceneLoader.ImportMeshAsync('', '', 'https://mambofishfiledump.s3.us-east-2.amazonaws.com/gs_Jaleels_Room.ply', scene)
+    BABYLON.SceneLoader.ImportMeshAsync('', '', 'https://mambofishfiledump.s3.us-east-2.amazonaws.com/jaleelRoom_2.splat', scene)
       .then((result) => {
         const loadedMeshes = result.meshes;
         loadedMeshes.forEach((mesh) => {
