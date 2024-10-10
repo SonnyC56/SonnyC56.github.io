@@ -182,17 +182,51 @@
       border-radius: 5px; 
       cursor: pointer;
     }
+    
+    .ui-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(0,0,0,0.7);
+      padding: 15px;
+      border-radius: 10px;
+      color: white;
+      z-index: 10;
+      font-size: 14px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+
+    /* Ensure the toggleFreeFly button has consistent styling */
+    #toggleFreeFly {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+    #toggleFreeFly:hover {
+      background-color: #45a049;
+    }
+      
   </style>
 </head>
 <body>
-<div id="preloader">
-      <h1>Story Splat</h1>
-      <div class="spinner"></div>
-  </div>
-    <!-- Start Screen -->
-  <div id="startButtonContainer">
-    <button id="startButton">Start Experience</button>
-  </div>
+  <div id="preloader">
+        <h1>Story Splat</h1>
+        <div class="spinner"></div>
+    </div>
+      <!-- Start Screen -->
+    <div id="startButtonContainer">
+      <button id="startButton">Start Experience</button>
+    </div>
   <canvas id="renderCanvas"></canvas>
   
   <div class="ui-overlay">
@@ -214,6 +248,9 @@
       <button class="button" onclick="adjustScroll(-1)">◀ Backward</button>
       <button class="button" onclick="adjustScroll(1)">Forward ▶</button>
     </div>
+    <div>
+      <button id="toggleFreeFly" onclick="toggleFreeFly()">Free Fly: Off</button>
+    </div>
   </div>
   
   <button id="muteButton">🔊 Mute</button>
@@ -221,6 +258,30 @@
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
   <script>
+    // Initialize freeFlyEnabled based on the parameter
+    let freeFlyEnabled = false;
+
+    // Function to toggle Free Fly mode
+    function toggleFreeFly() {
+      freeFlyEnabled = !freeFlyEnabled;
+      const toggleButton = document.getElementById('toggleFreeFly');
+      if (toggleButton) {
+        toggleButton.textContent = 'Free Fly: ' + (freeFlyEnabled ? 'On' : 'Off');
+      }
+      // Additional logic to handle Free Fly mode
+      // For example, enabling/disabling certain camera constraints
+      if ("path" === "path") {
+        if (freeFlyEnabled) {
+          // Enable free fly controls
+          userControl = true;
+        } else {
+          // Disable free fly controls and revert to path constraints
+          userControl = false;
+        }
+      }
+      console.log('Free Fly Enabled:', freeFlyEnabled);
+    }
+
     const preloader = document.getElementById('preloader');
     // Get the canvas element
     const canvas = document.getElementById('renderCanvas');
@@ -276,7 +337,7 @@
     let scrollTarget = 0.01; // Start with a small value to enable scrolling
 
     // Prepare waypoints and rotations
-    const waypoints = [{"x":0.35100707403422293,"y":0.18024953749231543,"z":-2.548524444000537,"rotation":{"_isDirty":true,"_x":-0.027912359773123552,"_y":-0.00004145737864838297,"_z":-0.00000115762425113601,"_w":0.9996103733214465},"interactions":[]},{"x":1.2601506241018177,"y":0.18024953751127593,"z":-2.2871135856389673,"rotation":{"_isDirty":true,"_x":-0.03018453507636585,"_y":-0.20632466802072288,"_z":-0.006367926217430065,"_w":0.9779971752127159},"interactions":[]},{"x":2.914925517695998,"y":0.15057484364311005,"z":-1.6691823522192752,"rotation":{"_isDirty":true,"_x":-0.016136772614506485,"_y":-0.7225756487554675,"_z":-0.01687665816674684,"_w":0.6908973981745233},"interactions":[{"id":"interaction-1728361749007","type":"info","data":{"text":"You are nearing an audio source."}}]},{"x":3.4859497291263457,"y":0.10157607343778273,"z":0.08177820137532217,"rotation":{"_isDirty":true,"_x":0.01179002442857532,"_y":0.8814243552795653,"_z":0.022032679216950176,"_w":-0.4716637173776454},"interactions":[{"id":"interaction-1728361593219","type":"audio","data":{"url":"https://cdn.pixabay.com/download/audio/2023/07/15/audio_75571dd5ba.mp3?filename=scandinavianz-tranvik-free-download-158258.mp3","spatialSound":true,"volume":0.23,"maxDistance":3,"autoplay":true}}]},{"x":2.537915735381895,"y":0.08806371543452286,"z":1.873480853152477,"rotation":{"_isDirty":true,"_x":0.003405191317620568,"_y":-0.8574420352834429,"_z":0.005674515946022473,"_w":0.5145380070216932},"interactions":[]},{"x":1.6094714141634394,"y":0.8466518707675013,"z":3.2568909590461512,"rotation":{"_isDirty":true,"_x":-0.0226520063436028,"_y":0.977215602244377,"_z":-0.14086788047531715,"_w":-0.15713940813545382},"interactions":[]},{"x":-1.4674050889335242,"y":0.7432277858127436,"z":1.763678988189047,"rotation":{"_isDirty":true,"_x":0.03277296076747466,"_y":0.8537407393444248,"_z":-0.05413608577271001,"_w":0.5168384343713014},"interactions":[]},{"x":0.06569005096919157,"y":0.46945819305262176,"z":1.2431822477368575,"rotation":{"_isDirty":true,"_x":-0.0048568037644017995,"_y":0.9948036073878062,"_z":-0.057690689472770104,"_w":-0.08374949870631},"interactions":[{"id":"interaction-1728361721103","type":"info","data":{"text":"Test info pop up"}}]},{"x":0.9704612403251393,"y":0.3453198167517761,"z":-0.6406296077187641,"rotation":{"_isDirty":true,"_x":0.030943319892741596,"_y":-0.8102025416997702,"_z":0.04294670965754093,"_w":0.583755027821464},"interactions":[]},{"x":0.08739537975114169,"y":0.29879628996747737,"z":-1.69890992280609,"rotation":{"_isDirty":true,"_x":0.042365250759444334,"_y":-0.42187592158610926,"_z":0.01973926412940128,"_w":0.905448095566825},"interactions":[]},{"x":-0.9683238918552701,"y":0.2789892654535821,"z":-2.065456647056107,"rotation":{"_isDirty":true,"_x":-0.0359010336521529,"_y":-0.11654932049660982,"_z":-0.00421574570165301,"_w":0.9925268757885928},"interactions":[]},{"x":-1.9773504921252316,"y":0.3384478760737514,"z":-1.7099786905426657,"rotation":{"_isDirty":true,"_x":-0.04559849810743161,"_y":0.08955191849443192,"_z":0.0041042443236950004,"_w":0.9949293372108617},"interactions":[]},{"x":-2.818754963017677,"y":0.3328741313808968,"z":-0.43115779699518064,"rotation":{"_isDirty":true,"_x":0.020696102020252575,"_y":0.46401151660987905,"_z":-0.010844722798409343,"_w":0.885520962937633},"interactions":[]}];
+    const waypoints = [{"x":0.35100707403422293,"y":0.18024953749231543,"z":-2.548524444000537,"rotation":{"_isDirty":true,"_x":-0.027912359773123552,"_y":-0.00004145737864838297,"_z":-0.00000115762425113601,"_w":0.9996103733214465},"interactions":[]},{"x":1.2601506241018177,"y":0.18024953751127593,"z":-2.2871135856389673,"rotation":{"_isDirty":true,"_x":-0.03018453507636585,"_y":-0.20632466802072288,"_z":-0.006367926217430065,"_w":0.9779971752127159},"interactions":[]},{"x":2.914925517695998,"y":0.15057484364311005,"z":-1.6691823522192752,"rotation":{"_isDirty":true,"_x":-0.016136772614506485,"_y":-0.7225756487554675,"_z":-0.01687665816674684,"_w":0.6908973981745233},"interactions":[{"id":"interaction-1728361749007","type":"info","data":{"text":"You are nearing an audio source."}}]},{"x":3.4859497291263457,"y":0.10157607343778273,"z":0.08177820137532217,"rotation":{"_isDirty":true,"_x":0.01179002442857532,"_y":0.8814243552795653,"_z":0.022032679216950176,"_w":-0.4716637173776454},"interactions":[{"id":"interaction-1728361593219","type":"audio","data":{"url":"https://cdn.pixabay.com/download/audio/2023/07/15/audio_75571dd5ba.mp3?filename=scandinavianz-tranvik-free-download-158258.mp3","spatialSound":true,"volume":0.23,"maxDistance":3,"autoplay":true}}]},{"x":2.537915735381895,"y":0.08806371543452286,"z":1.873480853152477,"rotation":{"_isDirty":true,"_x":0.003405191317620568,"_y":-0.8574420352834429,"_z":0.005674515946022473,"_w":0.5145380070216932},"interactions":[]},{"x":1.6094714141634394,"y":0.8466518707675013,"z":3.2568909590461512,"rotation":{"_isDirty":true,"_x":-0.0226520063436028,"_y":0.977215602244377,"_z":-0.14086788047531715,"_w":-0.15713940813545382},"interactions":[]},{"x":-1.4674050889335242,"y":0.7432277858127436,"z":1.763678988189047,"rotation":{"_isDirty":true,"_x":0.032772960767474664,"_y":0.8537407393444251,"_z":-0.05413608577271002,"_w":0.5168384343713015},"interactions":[]},{"x":0.06569005096919157,"y":0.46945819305262176,"z":1.2431822477368575,"rotation":{"_isDirty":true,"_x":-0.0048568037644017995,"_y":0.9948036073878062,"_z":-0.057690689472770104,"_w":-0.08374949870631},"interactions":[{"id":"interaction-1728361721103","type":"info","data":{"text":"Test info pop up"}}]},{"x":0.9704612403251393,"y":0.3453198167517761,"z":-0.6406296077187641,"rotation":{"_isDirty":true,"_x":0.030943319892741603,"_y":-0.8102025416997705,"_z":0.04294670965754094,"_w":0.5837550278214642},"interactions":[]},{"x":0.08739537975114169,"y":0.29879628996747737,"z":-1.69890992280609,"rotation":{"_isDirty":true,"_x":0.042365250759444334,"_y":-0.42187592158610926,"_z":0.01973926412940128,"_w":0.905448095566825},"interactions":[]},{"x":-0.9683238918552701,"y":0.2789892654535821,"z":-2.065456647056107,"rotation":{"_isDirty":true,"_x":-0.0359010336521529,"_y":-0.11654932049660982,"_z":-0.00421574570165301,"_w":0.9925268757885928},"interactions":[]},{"x":-1.9773504921252316,"y":0.3384478760737514,"z":-1.7099786905426657,"rotation":{"_isDirty":true,"_x":-0.04559849810743161,"_y":0.08955191849443192,"_z":0.0041042443236950004,"_w":0.9949293372108617},"interactions":[]},{"x":-2.818754963017677,"y":0.3328741313808968,"z":-0.43115779699518064,"rotation":{"_isDirty":true,"_x":0.020696102020252575,"_y":0.46401151660987905,"_z":-0.010844722798409343,"_w":0.885520962937633},"interactions":[]}];
     const controlPoints = waypoints.map(
       (wp) => new BABYLON.Vector3(wp.x, wp.y, wp.z)
     );
@@ -391,73 +452,72 @@
     let isMuted = false;
     const activeSounds = {};
 
-// Updated playAudio function
-function playAudio(interactionData, waypointIndex) {
-  if (isMuted) return;
+    // Updated playAudio function
+    function playAudio(interactionData, waypointIndex) {
+      if (isMuted) return;
 
-  const id = interactionData.id;
-  const url = interactionData.url;
-  const data = interactionData;
+      const id = interactionData.id;
+      const url = interactionData.url;
+      const data = interactionData;
 
-  // If sound is already playing, do not play it again
-  if (activeSounds[id] && activeSounds[id].isPlaying) {
-    return;
-  }
-
-  if (activeSounds[id]) {
-    // Sound object already exists, play it if not playing
-    if (!activeSounds[id].isPlaying) {
-      activeSounds[id].play();
-    }
-  } else {
-    // Create new sound
-    const sound = new BABYLON.Sound(
-      id,
-      url,
-      scene,
-      () => {
-        // Play the sound once it's ready
-        sound.play();
-      },
-      {
-        loop: data.loop !== undefined ? data.loop : true,
-        volume: data.volume !== undefined ? data.volume : 1,
-        spatialSound: data.spatialSound !== undefined ? data.spatialSound : false,
-        distanceModel: data.distanceModel !== undefined ? data.distanceModel : "exponential",
-        maxDistance: data.maxDistance !== undefined ? data.maxDistance : 100,
-        refDistance: data.refDistance !== undefined ? data.refDistance : 1,
-        rolloffFactor: data.rolloffFactor !== undefined ? data.rolloffFactor : 1,
+      // If sound is already playing, do not play it again
+      if (activeSounds[id] && activeSounds[id].isPlaying) {
+        return;
       }
-    );
 
-    activeSounds[id] = sound;
-
-    if (data.spatialSound) {
-      let position;
-      if (waypointIndex !== undefined && waypoints[waypointIndex]) {
-        const waypoint = waypoints[waypointIndex];
-        position = new BABYLON.Vector3(waypoint.x, waypoint.y, waypoint.z);
+      if (activeSounds[id]) {
+        // Sound object already exists, play it if not playing
+        if (!activeSounds[id].isPlaying) {
+          activeSounds[id].play();
+        }
       } else {
-        position = new BABYLON.Vector3(0, 0, 0); // Default position if waypoint is undefined
+        // Create new sound
+        const sound = new BABYLON.Sound(
+          id,
+          url,
+          scene,
+          () => {
+            // Play the sound once it's ready
+            sound.play();
+          },
+          {
+            loop: data.loop !== undefined ? data.loop : true,
+            volume: data.volume !== undefined ? data.volume : 1,
+            spatialSound: data.spatialSound !== undefined ? data.spatialSound : false,
+            distanceModel: data.distanceModel !== undefined ? data.distanceModel : "exponential",
+            maxDistance: data.maxDistance !== undefined ? data.maxDistance : 100,
+            refDistance: data.refDistance !== undefined ? data.refDistance : 1,
+            rolloffFactor: data.rolloffFactor !== undefined ? data.rolloffFactor : 1,
+          }
+        );
+
+        activeSounds[id] = sound;
+
+        if (data.spatialSound) {
+          let position;
+          if (waypointIndex !== undefined && waypoints[waypointIndex]) {
+            const waypoint = waypoints[waypointIndex];
+            position = new BABYLON.Vector3(waypoint.x, waypoint.y, waypoint.z);
+          } else {
+            position = new BABYLON.Vector3(0, 0, 0); // Default position if waypoint is undefined
+          }
+
+          sound.setPosition(position);
+          // No need to attach the sound to the camera
+        }
       }
-
-      sound.setPosition(position);
-      // No need to attach the sound to the camera
     }
-  }
-}
 
-// Updated stopAudio function
-function stopAudio(interactionData) {
-  const id = interactionData.id;
-  const sound = activeSounds[id];
-  if (sound && sound.isPlaying) {
-    sound.stop();
-  }
-  // Remove the sound from activeSounds to clean up
-  delete activeSounds[id];
-}
-
+    // Updated stopAudio function
+    function stopAudio(interactionData) {
+      const id = interactionData.id;
+      const sound = activeSounds[id];
+      if (sound && sound.isPlaying) {
+        sound.stop();
+      }
+      // Remove the sound from activeSounds to clean up
+      delete activeSounds[id];
+    }
 
     // Function to execute interactions
     const executeInteractions = (interactions, waypointIndex) => {
@@ -520,6 +580,10 @@ function stopAudio(interactionData) {
 
     // Function to adjust scroll
     function adjustScroll(direction) {
+      // Prevent scroll adjustment when Free Fly is enabled in path mode
+      if ("path" === "path" && freeFlyEnabled) {
+        return;
+      }
       const increment = 10;
       const pathLength = path.length;
       if (pathLength > 1) {
@@ -537,7 +601,10 @@ function stopAudio(interactionData) {
     window.addEventListener('wheel', (event) => {
       if (animatingToPath) return;
 
-      if (userControl) {
+      if (
+        ("path" === "auto" && userControl) ||
+        ("path" === "path" && !freeFlyEnabled && userControl)
+      ) {
         animatingToPath = true;
         userControl = false;
 
@@ -615,10 +682,13 @@ function stopAudio(interactionData) {
           scrollTarget = scrollPosition;
         });
       } else {
-        scrollTarget += event.deltaY * 0.1;
+        // Prevent updating scroll when Free Fly is enabled in path mode
+        if (!("path" === "path" && freeFlyEnabled)) {
+          scrollTarget += event.deltaY * 0.1;
 
-        if (scrollTarget < 0) scrollTarget = 0;
-        if (scrollTarget > path.length - 1) scrollTarget = path.length - 1;
+          if (scrollTarget < 0) scrollTarget = 0;
+          if (scrollTarget > path.length - 1) scrollTarget = path.length - 1;
+        }
       }
     });
 
@@ -681,13 +751,23 @@ function stopAudio(interactionData) {
       // Clamp scroll position
       scrollPosition = Math.max(0, Math.min(scrollPosition, path.length - 1));
 
-      // Update UI
+      // Calculate scroll percentage
       const scrollPercentage = (scrollPosition / (path.length - 1 || 1)) * 100;
-      if(true){
-         updateScrollUI(scrollPercentage);
+
+      // Update UI only if not in Free Fly mode
+      if (!("path" === "path" && freeFlyEnabled)) {
+        updateScrollUI(scrollPercentage);
       }
 
-      if (!userControl && path.length >= 1) {
+      // Determine if camera should follow the path
+      if (
+        (
+          "path" === "auto" && !userControl
+        ) ||
+        (
+          "path" === "path" && !freeFlyEnabled && !userControl
+        )
+      ) {
         const t = scrollPosition / (path.length - 1 || 1);
 
         const totalSegments = waypoints.length - 1;
@@ -765,22 +845,21 @@ function stopAudio(interactionData) {
     // User interaction detection
     scene.onPointerObservable.add(function (evt) {
       if (evt.type === BABYLON.PointerEventTypes.POINTERDOWN) {
-        userControl = true;
-
-        if (camera.rotationQuaternion) {
-          camera.rotation = camera.rotationQuaternion.toEulerAngles();
-          camera.rotationQuaternion = null;
+        if ("path" === "auto" ||  ("path" === "path" && freeFlyEnabled)) {
+          userControl = true;
+        } else {
+          userControl = false;
         }
       }
     });
 
     window.addEventListener('keydown', function () {
-      userControl = true;
-
-      if (camera.rotationQuaternion) {
-        camera.rotation = camera.rotationQuaternion.toEulerAngles();
-        camera.rotationQuaternion = null;
+      if ("path" === "auto" ||  ("path" === "path" && freeFlyEnabled)) {
+        userControl = true;
+      } else {
+        userControl = false;
       }
+
     });
 
     // Mute button functionality
