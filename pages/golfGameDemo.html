@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Mini Golf Game</title>
+    <!-- Include Babylon.js CDN -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <!-- Include Havok Physics plugin -->
+    <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+    <!-- Include Babylon.js GUI -->
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <!-- Include Cannon.js for physics -->
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            background-color: #87CEEB; /* Sky blue background */
+            font-family: Arial, sans-serif;
+        }
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            display: block;
+        }
+        /* Power meter styling */
+        #powerMeter {
+            position: absolute;
+            top: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid #000;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none; /* Hidden by default */
+            z-index: 1;
+        }
+        #powerFill {
+            height: 100%;
+            width: 0%;
+            background: green;
+            transition: width 0.1s;
+        }
+        /* Stroke counter styling */
+        #strokeCounter {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid #000;
+            border-radius: 10px;
+            font-size: 18px;
+            z-index: 1;
+        }
+        /* Scorecard styling */
+        #scorecard {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid #000;
+            border-radius: 10px;
+            font-size: 16px;
+            z-index: 1;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        /* Control Instructions Styling */
+        #controlInstructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #000;
+            border-radius: 10px;
+            font-size: 16px;
+            z-index: 1;
+            max-width: 300px;
+        }
+        .key {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 2px;
+            border: 2px solid #000;
+            border-radius: 5px;
+            background: #f0f0f0;
+            transition: background 0.2s, transform 0.1s;
+            position: relative;
+        }
+        .key.pressed {
+            background: #ffa500;
+            transform: scale(1.1);
+        }
+        .instruction {
+            margin-bottom: 10px;
+        }
+        /* Hole message styling */
+        #holeMessage, #holeCompleteMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid #000;
+            border-radius: 15px;
+            font-size: 24px;
+            text-align: center;
+            z-index: 2;
+            display: none; /* Hidden by default */
+        }
+        /* Camera switch button styling */
+        #cameraSwitchButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            z-index: 1;
+            cursor: pointer;
+        }
+        /* Control Toggle Styling */
+        #controlToggle {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid #000;
+            border-radius: 10px;
+            font-size: 16px;
+            z-index: 1;
+            cursor: pointer;
+        }
+        /* Scorecard table styling */
+        #scorecard table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #scorecard th, #scorecard td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+        }
+        #scorecard th {
+            background-color: #f0f0f0;
+        }
+        /* Toggle Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-right: 10px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0;
+            right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px; width: 26px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <div id="powerMeter">
+        <div id="powerFill"></div>
+    </div>
+    <div id="strokeCounter">Hole 1 - Strokes: 0</div>
+    <div id="scorecard">
+        <table>
+            <thead>
+                <tr>
+                    <th>Hole</th>
+                    <th>Strokes</th>
+                </tr>
+            </thead>
+            <tbody id="scorecardBody">
+                <!-- Scores will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+    <div id="controlInstructions">
+        <div class="instruction"><strong>Controls:</strong></div>
+        <div class="instruction">
+            <span class="key">Click & Drag</span> on the ball to aim and shoot.
+        </div>
+        <div class="instruction">
+            <span class="key">A</span>, <span class="key">D</span>, <span class="key">←</span>, <span class="key">→</span> - Control Ball
+        </div>
+    </div>
+    <div id="holeMessage">Ball has entered the hole!</div>
+    <div id="holeCompleteMessage">Hole Complete!</div>
+    <button id="cameraSwitchButton">Switch Camera</button>
+    <!-- Control Toggle for Directional Influence -->
+    <div id="controlToggle">
+        <label class="switch">
+            <input type="checkbox" id="directionalControlToggle" checked>
+            <span class="slider"></span>
+        </label>
+        <span>Enable Directional Control</span>
+    </div>
+    <script>
+        // Get the canvas and UI elements
+        var canvas = document.getElementById("renderCanvas");
+        var powerMeter = document.getElementById("powerMeter");
+        var powerFill = document.getElementById("powerFill");
+        var strokeCounter = document.getElementById("strokeCounter");
+        var controlInstructions = document.getElementById("controlInstructions");
+        var holeMessage = document.getElementById("holeMessage");
+        var holeCompleteMessage = document.getElementById("holeCompleteMessage");
+        var scorecard = document.getElementById("scorecard");
+        var scorecardBody = document.getElementById("scorecardBody");
+        var cameraSwitchButton = document.getElementById("cameraSwitchButton");
+        var directionalControlToggle = document.getElementById("directionalControlToggle");
+
+        // Initialize variables
+        var strokes = 0;
+        var currentHole = 1;
+        var totalHoles = 18;
+        var strokesPerHole = [];
+        var lastShotPosition = null; // Variable to track last shot position
+
+        // Key mapping for UI highlighting
+        var keyMap = {
+            'a': 'A',
+            'd': 'D',
+            'arrowleft': '←',
+            'arrowright': '→'
+        };
+
+        // Generate the Babylon 3D engine
+        var engine = new BABYLON.Engine(canvas, true);
+
+        // Global variables for cameras
+        var camera, isometricCamera, topDownCamera, currentCamera;
+
+        // Input variables
+        var startingPointerX;
+        var startingPointerY;
+        var isDragging = false;
+        var maxPower = 200; // Maximum launch power
+        var currentPower = 0;
+
+        // Flag to prevent shooting until ball is at rest
+        var canShoot = true;
+
+        // Speed threshold to allow user input (prevent continuous momentum)
+        var speedThreshold = 0.1;
+
+        // Maximum ball speed to prevent infinite acceleration
+        var maxBallSpeed = 100;
+
+        // Variable to control directional influence based on toggle
+        var allowDirectionalControl = true;
+
+        // Variables
+        var planes = [];
+        var holePosition, holeIndicator, flagPole, flag, ball;
+        var obstacles = [];
+        var ramps = [];
+
+        // Visual Arrow for Launch Direction (single line)
+        var arrow;
+
+        // Input Map for keyboard controls
+        var inputMap = {};
+
+        // Variable to store the last valid position of the ball
+        var lastValidPosition = null;
+
+        // Declare the scene variable here to make it accessible in Level class
+        var scene;
+
+        // CreateScene function that creates and returns the scene
+        var createScene =  function () {
+            // Create a basic BJS Scene object
+            scene = new BABYLON.Scene(engine);
+            scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
+
+            // Create an ArcRotateCamera for intuitive orbit controls
+            camera = new BABYLON.ArcRotateCamera("ArcCam", Math.PI / 2, Math.PI / 3, 50, new BABYLON.Vector3(0, 0, 0), scene);
+            camera.attachControl(canvas, true);
+            camera.lowerRadiusLimit = 10;
+            camera.upperRadiusLimit = 100;
+
+            // Create an isometric camera
+            isometricCamera = new BABYLON.FreeCamera("IsoCam", new BABYLON.Vector3(0, 100, -100), scene);
+            isometricCamera.setTarget(BABYLON.Vector3.Zero());
+            isometricCamera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+            var orthoSize = 50;
+            isometricCamera.orthoLeft = -orthoSize;
+            isometricCamera.orthoRight = orthoSize;
+            isometricCamera.orthoTop = orthoSize;
+            isometricCamera.orthoBottom = -orthoSize;
+            isometricCamera.rotation = new BABYLON.Vector3(Math.PI / 4, Math.PI, 0); // Isometric angle
+            isometricCamera.detachControl(canvas);
+
+            // Create a top-down camera
+            topDownCamera = new BABYLON.FreeCamera("TopDownCam", new BABYLON.Vector3(0, 150, 0), scene);
+            topDownCamera.setTarget(BABYLON.Vector3.Zero());
+            topDownCamera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+            topDownCamera.orthoLeft = -orthoSize;
+            topDownCamera.orthoRight = orthoSize;
+            topDownCamera.orthoTop = orthoSize;
+            topDownCamera.orthoBottom = -orthoSize;
+            topDownCamera.rotation = new BABYLON.Vector3(Math.PI / 2, Math.PI, 0); // Top-down angle
+            topDownCamera.detachControl(canvas);
+
+            currentCamera = camera;
+
+            // Disable default camera keys
+            camera.keysUp = [];
+            camera.keysDown = [];
+            camera.keysLeft = [];
+            camera.keysRight = [];
+
+            // Create a hemispheric light
+            var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.7;
+
+            // Function to setup the hole
+            var setupHole = function () {
+                // Clear previous obstacles and arrays
+                if (obstacles) {
+                    obstacles.forEach(function (obs) {
+                        obs.dispose();
+                    });
+                }
+                obstacles = [];
+                if (ramps) {
+                    ramps.forEach(function (ramp) {
+                        ramp.dispose();
+                    });
+                }
+                ramps = [];
+                if (planes) {
+                    planes.forEach(function (pl) {
+                        pl.dispose();
+                    });
+                }
+                planes = [];
+                if (holeIndicator) {
+                    holeIndicator.dispose();
+                }
+                if (flagPole) {
+                    flagPole.dispose();
+                }
+                if (flag) {
+                    flag.dispose();
+                }
+                if (ball) {
+                    ball.dispose();
+                }
+
+                // Create the level
+                var level = new Level(currentHole);
+                level.createPlanes();
+                level.placeObstacles();
+                level.placeHoleAndBall();
+                level.placeRampsBetweenPlanes(); // Ramps without boost
+
+                // Update references
+                planes = level.planes;
+                holePosition = level.holePosition;
+                holeIndicator = level.holeIndicator;
+                flagPole = level.flagPole;
+                flag = level.flag;
+                ball = level.ball;
+                obstacles = level.obstacles;
+                ramps = level.ramps;
+
+                // Reset strokes
+                strokes = 0;
+                updateStrokeCounter();
+
+                // Reset canShoot
+                canShoot = true;
+
+                // Reset hole messages
+                holeMessage.style.display = "none";
+                holeCompleteMessage.style.display = "none";
+
+                // Reset last valid position and last shot position
+                lastValidPosition = ball.position.clone();
+                lastShotPosition = ball.position.clone();
+
+                // Set camera target and reset camera position to frame the new ball position
+                camera.target = ball.position;
+                camera.alpha = Math.PI / 2;
+                camera.beta = Math.PI / 3;
+                camera.radius = 50;
+                camera.position = new BABYLON.Vector3(
+                    ball.position.x + camera.radius * Math.sin(camera.alpha) * Math.sin(camera.beta),
+                    ball.position.y + camera.radius * Math.cos(camera.beta),
+                    ball.position.z + camera.radius * Math.cos(camera.alpha) * Math.sin(camera.beta)
+                );
+
+                isometricCamera.setTarget(ball.position);
+                topDownCamera.setTarget(ball.position);
+
+                // Ensure arrow exists
+                if (!arrow) {
+                    // Visual Arrow for Launch Direction
+                    arrow = BABYLON.MeshBuilder.CreateLines("arrow", {
+                        points: [
+                            new BABYLON.Vector3(0, 0, 0),
+                            new BABYLON.Vector3(0, 0, 0)
+                        ],
+                        updatable: true
+                    }, scene);
+                    arrow.color = new BABYLON.Color3(1, 1, 0); // Yellow arrow
+                    arrow.isVisible = false;
+                }
+
+                // Attach events to the new ball
+                canvas.addEventListener("pointerdown", onPointerDown, false);
+                canvas.addEventListener("pointerup", onPointerUp, false);
+                canvas.addEventListener("pointermove", onPointerMove, false);
+            };
+
+            // Level Class Definition
+            class Level {
+                constructor(holeNumber) {
+                    this.holeNumber = holeNumber;
+                    this.size = 100; // Size of the plane
+                    this.planes = [];
+                    this.holePosition = null;
+                    this.ball = null;
+                    this.holeIndicator = null;
+                    this.flagPole = null;
+                    this.flag = null;
+                    this.obstacles = [];
+                    this.ramps = [];
+                }
+
+                createPlanes() {
+                    var planeCount = this.holeNumber; // Number of planes increases with hole number
+                    var planeHeightDifference = 30; // Increased height difference between planes
+                    for (var i = 0; i < planeCount; i++) {
+                        var plane = BABYLON.MeshBuilder.CreateGround("plane" + i, {
+                            width: this.size,
+                            height: this.size,
+                            subdivisions: 2,
+                        }, scene);
+                        plane.position.y = i * planeHeightDifference;
+
+                        // Randomly offset planes in x and z directions
+                        plane.position.x = Math.random() * 200 - 100; // Random x position between -100 and 100
+                        plane.position.z = Math.random() * 200 - 100; // Random z position between -100 and 100
+
+                        var planeMaterial = new BABYLON.StandardMaterial("planeMat" + i, scene);
+                        planeMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.8, 0.3); // Grass green
+                        planeMaterial.backFaceCulling = false; // Disable backface culling
+                        plane.material = planeMaterial;
+                        plane.physicsImpostor = new BABYLON.PhysicsImpostor(plane, BABYLON.PhysicsImpostor.BoxImpostor, {
+                            mass: 0,
+                            friction: 0.8,
+                            restitution: 0.3
+                        }, scene);
+                        this.planes.push(plane);
+                    }
+                }
+
+                placeObstacles() {
+                    var obstacleCount = (10 + this.holeNumber * 5) * 3; // Tripled obstacles
+                    for (var i = 0; i < obstacleCount; i++) {
+                        this.createBlockObstacle(i);
+                    }
+                }
+
+                createBlockObstacle(index) {
+                    var sizeX = Math.random() * 3 + 2;
+                    var sizeY = Math.random() * 2 + 1;
+                    var sizeZ = Math.random() * 3 + 2;
+
+                    // Randomly select a plane to place the obstacle on
+                    var plane = this.planes[Math.floor(Math.random() * this.planes.length)];
+
+                    // Position obstacle relative to the plane's position
+                    var positionX = plane.position.x + (Math.random() * (this.size - 20) - (this.size / 2 - 10));
+                    var positionZ = plane.position.z + (Math.random() * (this.size - 20) - (this.size / 2 - 10));
+                    var positionY = plane.position.y + sizeY / 2;
+                    var rotationY = Math.random() * Math.PI * 2;
+
+                    var block = BABYLON.MeshBuilder.CreateBox("block" + index, {
+                        height: sizeY,
+                        width: sizeX,
+                        depth: sizeZ
+                    }, scene);
+                    block.position = new BABYLON.Vector3(positionX, positionY, positionZ);
+                    block.rotation = new BABYLON.Vector3(0, rotationY, 0);
+                    var blockMaterial = new BABYLON.StandardMaterial("blockMat" + index, scene);
+                    blockMaterial.diffuseColor = new BABYLON.Color3(Math.random(), Math.random(), Math.random());
+                    block.material = blockMaterial;
+                    block.physicsImpostor = new BABYLON.PhysicsImpostor(block, BABYLON.PhysicsImpostor.BoxImpostor, {
+                        mass: 0,
+                        friction: 0.8,
+                        restitution: 0.3
+                    }, scene);
+
+                    this.obstacles.push(block);
+                }
+
+                placeHoleAndBall() {
+                    // Place hole on the lowest plane
+                    var lowestPlane = this.planes[0];
+
+                    // Ensure the hole doesn't spawn inside a collider
+                    var maxAttempts = 100;
+                    var attempt = 0;
+                    var validPositionFound = false;
+
+                    while (attempt < maxAttempts && !validPositionFound) {
+                        // Generate random offsets
+                        var xOffset = Math.random() * (this.size - 20) - (this.size / 2 - 10);
+                        var zOffset = Math.random() * (this.size - 20) - (this.size / 2 - 10);
+                        var y = lowestPlane.position.y + 0.1; // Slightly above the plane
+                        var potentialPosition = new BABYLON.Vector3(lowestPlane.position.x + xOffset, y, lowestPlane.position.z + zOffset);
+
+                        // Check for collisions at the potential position
+                        var intersects = this.obstacles.some((obstacle) => {
+                            return obstacle.getBoundingInfo().boundingBox.intersectsPoint(potentialPosition);
+                        });
+
+                        if (!intersects) {
+                            validPositionFound = true;
+                            this.holePosition = potentialPosition;
+                        }
+
+                        attempt++;
+                    }
+
+                    if (!validPositionFound) {
+                        console.error("Failed to find a valid position for the hole without collision.");
+                        // Fallback to default position
+                        this.holePosition = lowestPlane.position.clone();
+                    }
+
+                    // Create hole visual indicator
+                    this.holeIndicator = BABYLON.MeshBuilder.CreateCylinder("holeIndicator", {
+                        diameter: 3.2,
+                        height: 0.1
+                    }, scene);
+                    this.holeIndicator.position = this.holePosition.clone();
+                    var holeIndicatorMaterial = new BABYLON.StandardMaterial("holeIndicatorMat", scene);
+                    holeIndicatorMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2); // Dark gray
+                    holeIndicatorMaterial.backFaceCulling = false; // Disable backface culling
+                    this.holeIndicator.material = holeIndicatorMaterial;
+
+                    // Create the flag
+                    this.flagPole = BABYLON.MeshBuilder.CreateCylinder("flagPole", {
+                        diameter: 0.1,
+                        height: 3
+                    }, scene);
+                    this.flagPole.position = new BABYLON.Vector3(this.holePosition.x, this.holePosition.y + 1.5, this.holePosition.z);
+                    this.flag = BABYLON.MeshBuilder.CreatePlane("flag", {
+                        width: 1,
+                        height: 0.5
+                    }, scene);
+                    this.flag.position = new BABYLON.Vector3(this.holePosition.x + 0.5, this.holePosition.y + 2.5, this.holePosition.z);
+                    this.flag.rotation.y = Math.PI / 2;
+                    var flagMaterial = new BABYLON.StandardMaterial("flagMat", scene);
+                    flagMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0); // Red flag
+                    this.flag.material = flagMaterial;
+
+                    // Place ball on the highest plane
+                    var highestPlane = this.planes[this.planes.length - 1];
+
+                    // Ensure the ball doesn't spawn inside a collider
+                    attempt = 0;
+                    validPositionFound = false;
+
+                    while (attempt < maxAttempts && !validPositionFound) {
+                        var xOffset = Math.random() * (this.size - 20) - (this.size / 2 - 10);
+                        var zOffset = Math.random() * (this.size - 20) - (this.size / 2 - 10);
+                        var y = highestPlane.position.y + 0.5; // Slightly above the plane
+                        var ballPos = new BABYLON.Vector3(highestPlane.position.x + xOffset, y, highestPlane.position.z + zOffset);
+
+                        // Check for collisions at the potential position
+                        var intersects = this.obstacles.some((obstacle) => {
+                            return obstacle.getBoundingInfo().boundingBox.intersectsPoint(ballPos);
+                        });
+
+                        if (!intersects) {
+                            validPositionFound = true;
+                            this.ballPosition = ballPos;
+                        }
+
+                        attempt++;
+                    }
+
+                    if (!validPositionFound) {
+                        console.error("Failed to find a valid position for the ball without collision.");
+                        // Fallback to default position
+                        this.ballPosition = highestPlane.position.clone().add(new BABYLON.Vector3(0, 0.5, 0));
+                    }
+
+                    // Create the ball
+                    this.ball = BABYLON.MeshBuilder.CreateSphere("ball", {
+                        diameter: 1
+                    }, scene);
+                    this.ball.position = this.ballPosition;
+
+                    // Create a canvas for the ball's texture
+                    var canvasTexture = document.createElement('canvas');
+                    canvasTexture.width = 512;
+                    canvasTexture.height = 512;
+                    var ctx = canvasTexture.getContext('2d');
+
+                    // Draw top half one color (e.g., red)
+                    ctx.fillStyle = '#FF0000'; // Red
+                    ctx.fillRect(0, 0, canvasTexture.width, canvasTexture.height / 2);
+
+                    // Draw bottom half another color (e.g., blue)
+                    ctx.fillStyle = '#0000FF'; // Blue
+                    ctx.fillRect(0, canvasTexture.height / 2, canvasTexture.width, canvasTexture.height / 2);
+
+                    // Create Babylon texture from the canvas
+                    var ballTexture = new BABYLON.Texture(canvasTexture.toDataURL(), scene);
+
+                    // Create and assign the material to the ball
+                    var ballMaterial = new BABYLON.StandardMaterial("ballMat", scene);
+                    ballMaterial.diffuseTexture = ballTexture;
+                    this.ball.material = ballMaterial;
+
+                    // Assign physics impostor to the ball with increased rolling friction
+                    this.ball.physicsImpostor = new BABYLON.PhysicsImpostor(this.ball, BABYLON.PhysicsImpostor.SphereImpostor, {
+                        mass: 1,
+                        friction: 0.5,
+                        restitution: 0.1,
+                        rollingFriction: 0.8
+                    }, scene);
+
+                    // Increase damping to slow down the ball
+                    this.ball.physicsImpostor.physicsBody.linearDamping = 0.5;
+                    this.ball.physicsImpostor.physicsBody.angularDamping = 0.5;
+                }
+
+                placeRampsBetweenPlanes() {
+                    for (var i = 0; i < this.planes.length - 1; i++) {
+                        this.createLaunchRamp(this.planes[i + 1], this.planes[i]);
+                    }
+                }
+
+                createLaunchRamp(upperPlane, lowerPlane) {
+                    var rampWidth = 10;
+                    var rampHeight = 2; // Reduced height for less steepness
+                    var rampLength = 15; // Length of the ramp
+
+                    // Calculate the direction vector from the upper plane to the lower plane
+                    var directionToLowerPlane = lowerPlane.position.subtract(upperPlane.position).normalize();
+
+                    // Calculate the position on the edge of the upper plane closest to the lower plane
+                    var edgeOffset = this.size / 2 - rampLength / 2; // Offset to place ramp at the edge
+                    var rampPosition = upperPlane.position.add(directionToLowerPlane.scale(edgeOffset));
+                    rampPosition.y = upperPlane.position.y + rampHeight / 2; // Position ramp on top of the upper plane
+
+                    var ramp = BABYLON.MeshBuilder.CreateBox("ramp", {
+                        width: rampWidth,
+                        height: rampHeight,
+                        depth: rampLength
+                    }, scene);
+
+                    ramp.position = rampPosition;
+
+                    // Set ramp rotation to face the lower plane
+                    var yaw = Math.atan2(directionToLowerPlane.x, directionToLowerPlane.z);
+                    ramp.rotation.y = yaw;
+
+                    // Set ramp inclination to a less steep angle
+                    ramp.rotation.x = -Math.PI / 9; // Approximately 20 degrees
+
+                    var rampMaterial = new BABYLON.StandardMaterial("rampMat", scene);
+                    rampMaterial.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
+                    rampMaterial.backFaceCulling = false; // Disable backface culling
+                    ramp.material = rampMaterial;
+
+                    // Physics impostor using MeshImpostor to account for rotation
+                    ramp.physicsImpostor = new BABYLON.PhysicsImpostor(ramp, BABYLON.PhysicsImpostor.MeshImpostor, {
+                        mass: 0,
+                        friction: 0.5,
+                        restitution: 0.5
+                    }, scene);
+
+                    this.ramps.push(ramp);
+
+                    this.createRampBoostZone(ramp);
+                    }
+
+                    createRampBoostZone(ramp) {
+                        var rampWidth = ramp.scaling.x * ramp.getBoundingInfo().boundingBox.extendSize.x * 2;
+                        var rampLength = ramp.scaling.z * ramp.getBoundingInfo().boundingBox.extendSize.z * 2;
+                        var rampHeight = ramp.scaling.y * ramp.getBoundingInfo().boundingBox.extendSize.y * 2;
+
+                        var boostZone = BABYLON.MeshBuilder.CreateBox("boostZone", {
+                            width: rampWidth,
+                            height: 1,
+                            depth: rampLength
+                        }, scene);
+                        boostZone.position = ramp.position.clone();
+                        boostZone.position.y += rampHeight / 2; // Position it slightly above the ramp
+                        boostZone.rotation = ramp.rotation.clone();
+                        boostZone.isVisible = false; // Hide the boost zone
+                        boostZone.isPickable = false; // Do not interfere with pointer events
+
+                        // Create an action manager for the boost zone
+                        boostZone.actionManager = new BABYLON.ActionManager(scene);
+
+                        // Trigger when the ball intersects with the boost zone
+                        boostZone.actionManager.registerAction(
+                            new BABYLON.ExecuteCodeAction(
+                                {
+                                    trigger: BABYLON.ActionManager.OnIntersectionEnterTrigger,
+                                    parameter: this.ball
+                                },
+                                () => {
+                                    //increase ball velocity by 2x 
+                                    this.ball.physicsImpostor.setLinearVelocity(this.ball.physicsImpostor.getLinearVelocity().scale(3));
+                              
+                                }
+                            )
+                        );
+                    }
+            }
+
+            // Event Handlers
+            var onPointerDown = function (evt) {
+                if (!canShoot || !ball) {
+                    return; // Prevent shooting if ball is moving or doesn't exist
+                }
+                if (evt.button !== 0) {
+                    return;
+                }
+
+                var pickInfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == ball; });
+                if (pickInfo.hit) {
+                    isDragging = true;
+                    startingPointerX = evt.clientX;
+                    startingPointerY = evt.clientY;
+                    arrow.isVisible = true;
+                    powerMeter.style.display = "block";
+                    currentPower = 0;
+
+                    // Disable camera controls during aiming
+                    currentCamera.detachControl(canvas);
+                }
+            };
+
+            var onPointerUp = function (evt) {
+                if (isDragging && ball) {
+                    var endingPointerX = evt.clientX;
+                    var endingPointerY = evt.clientY;
+                    // Calculate delta as drag direction
+                    var deltaX = endingPointerX - startingPointerX;
+                    var deltaY = endingPointerY - startingPointerY;
+
+                    // Calculate direction opposite to drag (invert only left/right)
+                    var cameraForward = currentCamera.getDirection(new BABYLON.Vector3(0, 0, 1));
+                    var cameraRight = currentCamera.getDirection(new BABYLON.Vector3(1, 0, 0));
+                    var direction = cameraRight.scale(-deltaX).add(cameraForward.scale(deltaY));
+                    direction.y = 0;
+                    direction.normalize();
+
+                    var distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    var power = Math.min(distance * 0.2, maxPower); // Adjusted power scaling
+                    var impulse = direction.scale(power);
+                    ball.physicsImpostor.applyImpulse(impulse, ball.getAbsolutePosition());
+                    strokes += 1;
+                    updateStrokeCounter();
+                    canShoot = false;
+
+                    lastShotPosition = ball.position.clone(); // Store the last shot position
+
+                    isDragging = false;
+                    arrow.isVisible = false;
+                    powerMeter.style.display = "none";
+                    powerFill.style.width = "0%";
+
+                    // Re-enable camera controls after shooting
+                    currentCamera.attachControl(canvas, true);
+                }
+            };
+
+            var onPointerMove = function (evt) {
+                if (!isDragging || !ball) {
+                    return;
+                }
+                var currentPointerX = evt.clientX;
+                var currentPointerY = evt.clientY;
+                // Calculate delta as drag direction
+                var deltaX = currentPointerX - startingPointerX;
+                var deltaY = currentPointerY - startingPointerY;
+
+                // Calculate direction opposite to drag (invert only left/right)
+                var cameraForward = currentCamera.getDirection(new BABYLON.Vector3(0, 0, 1));
+                var cameraRight = currentCamera.getDirection(new BABYLON.Vector3(1, 0, 0));
+                var direction = cameraRight.scale(-deltaX).add(cameraForward.scale(deltaY));
+                direction.y = 0;
+                direction.normalize();
+
+                // Update arrow
+                var length = Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 0.02;
+                updateArrow(direction, length);
+
+                // Update power meter
+                currentPower = Math.min(length * 10, maxPower); // Adjusted power scaling
+                var powerPercent = (currentPower / maxPower) * 100;
+                powerFill.style.width = powerPercent + "%";
+            };
+
+            // Function to update the arrow
+            var updateArrow = function (direction, length) {
+                if (!arrow) return;
+                var arrowPoints = [
+                    new BABYLON.Vector3(0, 0, 0),
+                    direction.scale(length * 0.8),
+                    direction.scale(length * 0.8).add(new BABYLON.Vector3(-0.3, 0, -length * 0.2)),
+                    direction.scale(length * 0.8),
+                    direction.scale(length * 0.8).add(new BABYLON.Vector3(0.3, 0, -length * 0.2))
+                ];
+                // Update the existing arrow
+                arrow = BABYLON.MeshBuilder.CreateLines("arrow", {
+                    points: arrowPoints,
+                    updatable: true,
+                    instance: arrow
+                }, scene);
+                arrow.color = new BABYLON.Color3(1, 1, 0); // Yellow arrow
+                arrow.position = ball.position.clone();
+                arrow.position.y += 1; // Slightly above the ball
+                arrow.isVisible = true;
+            };
+
+            // Handle keyboard input for post-launch control
+            scene.actionManager = new BABYLON.ActionManager(scene);
+            scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, function (evt) {
+                var key = evt.sourceEvent.key.toLowerCase();
+                if (keyMap.hasOwnProperty(key)) {
+                    inputMap[key] = true;
+                    highlightKey(key, true);
+                }
+            }));
+            scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, function (evt) {
+                var key = evt.sourceEvent.key.toLowerCase();
+                if (keyMap.hasOwnProperty(key)) {
+                    inputMap[key] = false;
+                    highlightKey(key, false);
+                }
+            }));
+
+            // Function to highlight keys in the UI
+            function highlightKey(key, isPressed) {
+                var displayKey = keyMap[key];
+                if (!displayKey) return;
+                var keyElements = controlInstructions.getElementsByClassName('key');
+                for (var i = 0; i < keyElements.length; i++) {
+                    if (keyElements[i].innerText === displayKey) {
+                        if (isPressed) {
+                            keyElements[i].classList.add('pressed');
+                        } else {
+                            keyElements[i].classList.remove('pressed');
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Update directional control based on toggle
+            directionalControlToggle.addEventListener("change", function(e) {
+                allowDirectionalControl = e.target.checked;
+            });
+
+            scene.onBeforeRenderObservable.add(() => {
+                if (ball && ball.physicsImpostor) {
+                    // Update last valid position if ball is above a certain height
+                    if (ball.position.y > -1) {
+                        lastValidPosition = ball.position.clone();
+                    }
+
+                    // Calculate current speed
+                    var velocity = ball.physicsImpostor.getLinearVelocity();
+                    var speed = velocity.length();
+
+                    // Allow shooting only if the ball is nearly stationary
+                    if (!canShoot && speed < speedThreshold && holePosition) {
+                        canShoot = true;
+                    }
+
+                    // Cap the ball's speed to prevent infinite acceleration
+                    if (speed > maxBallSpeed) {
+                        var limitedVelocity = velocity.clone().scale(maxBallSpeed / speed);
+                        ball.physicsImpostor.setLinearVelocity(limitedVelocity);
+                    }
+
+                    // Apply directional impulses based on input and toggle state
+                    if (allowDirectionalControl && speed > (speedThreshold*10) && speed < maxBallSpeed) {
+                        var forceMagnitude = 10.0; // Adjusted force magnitude for stronger impulses
+                        var force = BABYLON.Vector3.Zero();
+
+                        // Determine if any control keys are pressed
+                        var isAnyKeyPressed = false;
+                        if (inputMap["a"] || inputMap["arrowleft"]) {
+                            // Apply force to the left relative to the ball's movement direction
+                            var movementDirection = velocity.clone().normalize();
+                            var left = new BABYLON.Vector3(-movementDirection.z, 0, movementDirection.x); // Perpendicular to movement
+                            force = force.add(left.scale(forceMagnitude));
+                            isAnyKeyPressed = true;
+                        }
+                        if (inputMap["d"] || inputMap["arrowright"]) {
+                            // Apply force to the right relative to the ball's movement direction
+                            var movementDirection = velocity.clone().normalize();
+                            var right = new BABYLON.Vector3(movementDirection.z, 0, -movementDirection.x); // Opposite perpendicular
+                            force = force.add(right.scale(forceMagnitude));
+                            isAnyKeyPressed = true;
+                        }
+
+                        if (isAnyKeyPressed) {
+                            // Apply the accumulated force
+                            ball.physicsImpostor.applyForce(force, ball.getAbsolutePosition());
+                        }
+                    }
+                }
+            });
+
+            // Check if ball is in the hole and handle disappearance
+            scene.registerBeforeRender(function () {
+                if (ball && ball.physicsImpostor) {
+                    var distanceToHole = BABYLON.Vector3.Distance(ball.position, holePosition);
+                    var velocity = ball.physicsImpostor.getLinearVelocity();
+                    var speed = velocity.length();
+
+                    // Check if ball has fallen off the planes
+                    if (ball.position.y < -5) {
+                        // Respawn the ball at the last shot position
+                        ball.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
+                        ball.physicsImpostor.setAngularVelocity(new BABYLON.Vector3(0, 0, 0));
+                        if (lastShotPosition) {
+                            ball.position = lastShotPosition.clone();
+                        } else {
+                            // If no last shot position recorded, respawn at starting position
+                            ball.position = new BABYLON.Vector3(0, planes[planes.length - 1].position.y + 1, 0);
+                        }
+                        strokes += 1; // Add a stroke
+                        updateStrokeCounter();
+                        canShoot = true;
+                    }
+
+                    if (distanceToHole < 1.5 && Math.abs(ball.position.y - holePosition.y) < 1) {
+                        // Ball has reached the hole
+                        ball.dispose(); // Remove the ball from the scene
+                        ball = null;
+                        canShoot = false;
+                        strokesPerHole[currentHole - 1] = strokes;
+
+                        holeMessage.style.display = "none";
+                        holeCompleteMessage.style.display = "block";
+
+                        updateScorecard();
+
+                        setTimeout(function () {
+                            currentHole += 1;
+                            if (currentHole > totalHoles) {
+                                // Game over
+                                holeCompleteMessage.innerText = "Game Over!\nTotal Strokes: " + strokesPerHole.reduce((a, b) => a + b, 0);
+                            } else {
+                                // Proceed to next hole
+                                setupHole();
+                            }
+                        }, 2000);
+                    }
+
+                    // Allow shooting again if ball is at rest
+                    if (ball && !canShoot && speed < speedThreshold && distanceToHole >= 1.5) {
+                        canShoot = true;
+                    }
+
+                    // Stop the ball completely if it's moving very slowly
+                    if (ball && speed < 0.02 && !isDragging) {
+                        ball.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero());
+                        ball.physicsImpostor.setAngularVelocity(BABYLON.Vector3.Zero());
+                    }
+                }
+            });
+
+            // Camera follows the ball's forward direction with easing
+            scene.onBeforeRenderObservable.add(function () {
+                if (ball && ball.physicsImpostor) {
+                    var velocity = ball.physicsImpostor.getLinearVelocity();
+                    var speed = velocity.length();
+                    if (speed > 0.05) { // Only adjust camera when ball is moving
+                        var direction = velocity.clone().normalize();
+                        var desiredPosition = ball.position.subtract(direction.scale(10)).add(new BABYLON.Vector3(0, 5, 0));
+                        camera.position = BABYLON.Vector3.Lerp(camera.position, desiredPosition, 0.05); // Easing factor
+                        camera.target = ball.position.clone();
+
+                        // Update isometric camera
+                        isometricCamera.position = ball.position.add(new BABYLON.Vector3(0, 100, -100));
+                        isometricCamera.setTarget(ball.position);
+
+                        // Update top-down camera
+                        topDownCamera.position = ball.position.add(new BABYLON.Vector3(0, 150, 0));
+                        topDownCamera.setTarget(ball.position);
+                    }
+                }
+            });
+
+            // Camera switch button event
+            cameraSwitchButton.addEventListener("click", function () {
+                if (currentCamera === camera) {
+                    // Switch to isometric view
+                    currentCamera.detachControl(canvas);
+                    currentCamera = isometricCamera;
+                    currentCamera.attachControl(canvas, true);
+                    cameraSwitchButton.innerText = "Switch to Top-Down";
+                } else if (currentCamera === isometricCamera) {
+                    // Switch to top-down view
+                    currentCamera.detachControl(canvas);
+                    currentCamera = topDownCamera;
+                    currentCamera.attachControl(canvas, true);
+                    cameraSwitchButton.innerText = "Switch to Main Camera";
+                } else {
+                    // Switch back to main camera
+                    currentCamera.detachControl(canvas);
+                    currentCamera = camera;
+                    currentCamera.attachControl(canvas, true);
+                    cameraSwitchButton.innerText = "Switch Camera";
+                }
+            });
+
+            // Function to update the scorecard
+            var updateScorecard = function () {
+                scorecardBody.innerHTML = "";
+                var totalStrokes = 0;
+                for (var i = 0; i < totalHoles; i++) {
+                    var holeNumber = i + 1;
+                    var strokesForHole = strokesPerHole[i] !== undefined ? strokesPerHole[i] : "-";
+                    totalStrokes += strokesPerHole[i] || 0;
+
+                    var row = document.createElement("tr");
+                    var holeCell = document.createElement("td");
+                    holeCell.innerText = holeNumber;
+                    var strokesCell = document.createElement("td");
+                    strokesCell.innerText = strokesForHole;
+
+                    row.appendChild(holeCell);
+                    row.appendChild(strokesCell);
+                    scorecardBody.appendChild(row);
+                }
+
+                // Add total strokes row
+                var totalRow = document.createElement("tr");
+                var totalCell = document.createElement("td");
+                totalCell.innerText = "Total";
+                var totalStrokesCell = document.createElement("td");
+                totalStrokesCell.innerText = totalStrokes;
+                totalRow.appendChild(totalCell);
+                totalRow.appendChild(totalStrokesCell);
+                scorecardBody.appendChild(totalRow);
+            };
+
+            // Function to update the stroke counter text
+            var updateStrokeCounter = function () {
+                strokeCounter.innerText = "Hole " + currentHole + " - Strokes: " + strokes;
+            };
+
+            // Initial hole setup
+            setupHole();
+
+            return scene;
+        };
+
+        // Call the createScene function
+        var scene = createScene();
+
+        // Register a render loop to repeatedly render the scene
+        engine.runRenderLoop(function () {
+            scene.render();
+        });
+
+        // Watch for browser/canvas resize events
+        window.addEventListener("resize", function () {
+            engine.resize();
+        }); 
+    </script>
+</body>
+</html>
