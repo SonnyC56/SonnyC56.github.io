@@ -1645,6 +1645,22 @@
             forceDirection.x += GAME_SETTINGS.controls.inputForceScale;
           }
 
+          // Mobile tilt controls
+          if (window.DeviceOrientationEvent) {
+            window.addEventListener("deviceorientation", (event) => {
+              const tiltLR = event.gamma; // Left to right tilt in degrees
+              const tiltFB = event.beta; // Front to back tilt in degrees
+
+              // Apply tilt-based forces
+              if (tiltLR) {
+                forceDirection.x += (tiltLR / 90) * GAME_SETTINGS.controls.inputForceScale;
+              }
+              if (tiltFB) {
+                forceDirection.z += (tiltFB / 90) * GAME_SETTINGS.controls.inputForceScale;
+              }
+            });
+          }
+
           // Only allow boost when below certain speed
           const tubeVelocity = tubeAggregate.body.getLinearVelocity();
           const speed = tubeVelocity.length();
