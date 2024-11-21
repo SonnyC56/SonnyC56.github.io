@@ -644,6 +644,12 @@
         trees = [];
       let lastHitTime = 0; // For collision cooldown
       let ground; // Make ground accessible globally
+      let isMobile = false;
+      let tiltControls = {
+        gamma: 0, // Left/Right tilt
+        beta: 0,  // Forward/Backward tilt
+        enabled: false
+      };
 
       // =====================
       // Handle Color Selection
@@ -845,7 +851,87 @@
         );
       }
 
- 
+     function initializeMobileControls() {
+      // Check if device is mobile
+      isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // Add mobile control elements to the start screen
+        const settingsSection = document.querySelector('.settings-section');
+        const mobileControlsDiv = document.createElement('div');
+        mobileControlsDiv.innerHTML = `
+          <h3>Mobile Controls</h3>
+          <label>
+            <input type="checkbox" id="tiltControls" checked>
+            Enable Tilt Controls
+          </label>
+          <div class="slider-container">
+            <label for="tiltSensitivity">Tilt Sensitivity:</label>
+            <input type="range" id="tiltSensitivity" min="0.1" max="2" step="0.1" value="1">
+            <span class="slider-value" id="tiltSensitivityValue">1</span>
+          </div>
+        `;
+        settingsSection.appendChild(mobileControlsDiv);
+
+        // Update sensitivity value display
+        const sensitivitySlider = document.getElementById('tiltSensitivity');
+        const sensitivityValue = document.getElementById('tiltSensitivityValue');
+        sensitivitySlider.addEventListener('input', () => {
+          sensitivityValue.innerText = sensitivitySlider.value;
+        });
+
+        // Add touch controls for jumping
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchend', handleTouchEnd);
+
+        // Request device orientation permission on iOS 13+
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+          document.getElementById('startScreen').addEventListener('click', async () => {
+            try {
+              const permission = await DeviceOrientationEvent.requestPermission();
+              if (permission === 'granted') {
+                enableTiltControls();
+              }
+            } catch (error) {
+              console.error('Error requesting device orientation permission:', error);
+            }
+          });
+        } else {
+          enableTiltControls();
+        }
+      }
+    }
+
+    function enableTiltControls() {
+      window.addEventListener('deviceorientation', handleDeviceOrientation);
+      tiltControls.enabled = true;
+    }
+
+    function handleDeviceOrientation(event) {
+      if (!tiltControls.enabled) return;
+      
+      // Get tilt sensitivity from slider
+      const sensitivity = parseFloat(document.getElementById('tiltSensitivity').value);
+      
+      // Update tilt values with sensitivity applied
+      tiltControls.gamma = event.gamma * sensitivity; // Left/Right tilt (-90 to 90)
+      tiltControls.beta = event.beta * sensitivity;   // Forward/Backward tilt (-180 to 180)
+    }
+
+    function handleTouchStart(event) {
+      if (isMobile && !finished) {
+        inputMap[" "] = true; // Trigger jump
+        event.preventDefault(); // Prevent default touch behavior
+      }
+    }
+
+    function handleTouchEnd(event) {
+      if (isMobile) {
+        inputMap[" "] = false; // Release jump
+        event.preventDefault();
+      }
+    }
+
       // =====================
       // Create Base Scene
       // =====================
@@ -1638,13 +1724,26 @@
             return;
           }
           let forceDirection = new BABYLON.Vector3(0, 0, 0);
+          if (isMobile && tiltControls.enabled) {
+              // Convert tilt to movement
+              // gamma (left/right tilt) controls left/right movement
+              if (Math.abs(tiltControls.gamma) > 5) { // Add dead zone
+                forceDirection.x += (tiltControls.gamma / 90) * GAME_SETTINGS.controls.inputForceScale;
+              }
+              
+              // beta (forward/backward tilt) controls forward movement
+              if (tiltControls.beta > 20) { // Forward tilt threshold
+                forceDirection.z += (tiltControls.beta / 90) * GAME_SETTINGS.controls.inputForceScale;
+              }
+          } else {
+
           if (inputMap["arrowleft"] || inputMap["a"]) {
             forceDirection.x -= GAME_SETTINGS.controls.inputForceScale;
           }
           if (inputMap["arrowright"] || inputMap["d"]) {
             forceDirection.x += GAME_SETTINGS.controls.inputForceScale;
           }
-
+        }
           // Only allow boost when below certain speed
           const tubeVelocity = tubeAggregate.body.getLinearVelocity();
           const speed = tubeVelocity.length();
@@ -1724,6 +1823,8 @@
           preserveDrawingBuffer: true,
           stencil: true
         });
+          // Initialize mobile controls
+        initializeMobileControls();
 
         // Update slider values display
         const sliders = document.querySelectorAll(
