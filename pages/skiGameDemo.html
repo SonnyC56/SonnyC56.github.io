@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      Inner Tube Racing Game with Path Outlines and Health Pickups
+    </title>
+    <style>
+      /* Ensure the game takes up the full screen */
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background-color: #000;
+        font-family: Arial, sans-serif;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        display: block;
+      }
+
+      #timer,
+      #coinCounter,
+      #healthBar {
+        position: absolute;
+        top: 10px;
+        color: white;
+        font-size: 24px;
+        display: none;
+        z-index: 5;
+        font-family: Arial, sans-serif;
+      }
+
+      #timer {
+        left: 10px;
+      }
+
+      #coinCounter {
+        left: 150px;
+      }
+
+      #healthBar {
+        left: 300px;
+      }
+
+      #startScreen,
+      #finishScreen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        text-align: center;
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+      }
+
+      #startScreen button,
+      #finishScreen button {
+        padding: 10px 20px;
+        font-size: 18px;
+        margin-top: 20px;
+        cursor: pointer;
+        border: none;
+        background-color: #28a745;
+        color: white;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+      }
+
+      #startScreen button:hover,
+      #finishScreen button:hover {
+        background-color: #218838;
+      }
+
+      /* Styles for color selection and settings */
+      .settings-section {
+        width: 100%;
+        max-width: 600px;
+        margin: 20px 0;
+        text-align: left;
+      }
+
+      .settings-section h3 {
+        margin-bottom: 10px;
+      }
+
+      .settings-section label {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .settings-section input[type="range"],
+      .settings-section input[type="color"],
+      .settings-section select {
+        width: 100%;
+        margin-bottom: 15px;
+      }
+
+      .settings-section .slider-container {
+        display: flex;
+        align-items: center;
+      }
+
+      .settings-section .slider-container input[type="range"] {
+        flex: 1;
+        margin-right: 10px;
+      }
+
+      .settings-section .slider-value {
+        width: 50px;
+        text-align: right;
+      }
+
+      .color-options {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+      }
+
+      .color-option {
+        width: 40px;
+        height: 40px;
+        margin: 0 10px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.2s, border 0.2s;
+      }
+
+      .color-option:hover {
+        transform: scale(1.1);
+      }
+
+      .color-selected {
+        border: 4px solid #ffff00;
+      }
+
+      /* Collapsible Settings Menu */
+      details {
+        width: 100%;
+        max-width: 600px;
+        margin: 20px 0;
+        text-align: left;
+      }
+
+      summary {
+        font-size: 20px;
+        cursor: pointer;
+        padding: 10px;
+        background-color: #333;
+        border-radius: 5px;
+        user-select: none;
+      }
+
+      details[open] summary {
+        background-color: #555;
+      }
+
+      /* Countdown Screen Styles */
+      #countdownScreen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 15;
+        font-family: Arial, sans-serif;
+        font-size: 80px;
+        pointer-events: none;
+      }
+
+      /* Red Vignette Overlay */
+      #vignette {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 0, 0, 0.3); /* Red with 30% opacity */
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease-out;
+        z-index: 20;
+      }
+
+      /* Responsive adjustments for Countdown Screen */
+      @media (max-width: 600px) {
+        #countdownScreen {
+          font-size: 50px;
+        }
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 600px) {
+        #timer,
+        #coinCounter,
+        #healthBar {
+          font-size: 18px;
+        }
+
+        #startScreen h1,
+        #finishScreen h1 {
+          font-size: 24px;
+        }
+
+        #startScreen p,
+        #finishScreen p {
+          font-size: 16px;
+        }
+
+        #startScreen button,
+        #finishScreen button {
+          font-size: 16px;
+        }
+
+        .color-option {
+          width: 30px;
+          height: 30px;
+          margin: 0 5px;
+        }
+
+        #countdownScreen {
+          font-size: 50px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="timer">Time: 0</div>
+    <div id="coinCounter">Coins: 0</div>
+    <div id="healthBar">Health: 100%</div>
+    <div id="startScreen">
+      <h1>Welcome to Inner Tube Racing!</h1>
+      <p>
+        Use the left/right arrow keys or A/D to steer your tube. Press Space to
+        jump when grounded.
+      </p>
+
+      <!-- Collapsible Game Settings Section -->
+      <details>
+        <summary>Game Settings</summary>
+        <div class="settings-section">
+          <h3>Game Settings</h3>
+          <!-- Countdown Duration -->
+          <label for="countdownDuration">Countdown Duration (seconds):</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="countdownDuration"
+              min="3"
+              max="20"
+              value="3"
+            />
+            <span class="slider-value" id="countdownDurationValue">3</span>
+          </div>
+
+          <!-- Ground Size -->
+          <label for="groundSize">Ground Size:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="groundSize"
+              min="500"
+              max="2000"
+              step="100"
+              value="1000"
+            />
+            <span class="slider-value" id="groundSizeValue">1000</span>
+          </div>
+
+          <!-- Slope Angle -->
+          <label for="slopeAngle">Slope Angle (degrees):</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="slopeAngle"
+              min="0"
+              max="45"
+              step="1"
+              value="10"
+            />
+            <span class="slider-value" id="slopeAngleValue">10</span>
+          </div>
+
+          <!-- Path Width -->
+          <label for="pathWidth">Path Width:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="pathWidth"
+              min="10"
+              max="100"
+              step="5"
+              value="30"
+            />
+            <span class="slider-value" id="pathWidthValue">30</span>
+          </div>
+
+          <!-- Obstacles per Segment -->
+          <label for="obstaclesPerSegment">Obstacles per Segment:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="obstaclesPerSegment"
+              min="0"
+              max="10"
+              step="1"
+              value="1"
+            />
+            <span class="slider-value" id="obstaclesPerSegmentValue">1</span>
+          </div>
+
+          <!-- Trees per Side -->
+          <label for="treesPerSide">Trees per Side:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="treesPerSide"
+              min="100"
+              max="10000"
+              step="100"
+              value="1000"
+            />
+            <span class="slider-value" id="treesPerSideValue">1000</span>
+          </div>
+
+          <!-- Tube Diameter -->
+          <label for="tubeDiameter">Tube Diameter:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="tubeDiameter"
+              min="1"
+              max="5"
+              step="0.1"
+              value="2"
+            />
+            <span class="slider-value" id="tubeDiameterValue">2.0</span>
+          </div>
+
+          <!-- Tube Thickness -->
+          <label for="tubeThickness">Tube Thickness:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="tubeThickness"
+              min="0.1"
+              max="2"
+              step="0.1"
+              value="0.6"
+            />
+            <span class="slider-value" id="tubeThicknessValue">0.6</span>
+          </div>
+
+          <!-- Camera Speed -->
+          <label for="cameraSpeed">Camera Speed:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="cameraSpeed"
+              min="0.1"
+              max="2"
+              step="0.1"
+              value="0.5"
+            />
+            <span class="slider-value" id="cameraSpeedValue">0.5</span>
+          </div>
+
+          <!-- Gravity Magnitude -->
+          <label for="gravityMagnitude">Gravity Magnitude:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="gravityMagnitude"
+              min="0"
+              max="20"
+              step="0.1"
+              value="9.81"
+            />
+            <span class="slider-value" id="gravityMagnitudeValue">9.81</span>
+          </div>
+
+          <!-- Tube Restitution -->
+          <label for="tubeRestitution">Tube Restitution:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="tubeRestitution"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.7"
+            />
+            <span class="slider-value" id="tubeRestitutionValue">0.7</span>
+          </div>
+
+          <!-- Tube Friction -->
+          <label for="tubeFriction">Tube Friction:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="tubeFriction"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.01"
+            />
+            <span class="slider-value" id="tubeFrictionValue">0.01</span>
+          </div>
+
+          <!-- Tube Spawn Drop Height -->
+          <label for="tubeSpawnDropHeight">Tube Spawn Drop Height:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="tubeSpawnDropHeight"
+              min="0"
+              max="20"
+              step="0.5"
+              value="2"
+            />
+            <span class="slider-value" id="tubeSpawnDropHeightValue">2.0</span>
+          </div>
+
+          <!-- Tube Health Points -->
+          <label for="tubeHealth">Tube Health Points:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="tubeHealth"
+              min="10"
+              max="200"
+              step="10"
+              value="100"
+            />
+            <span class="slider-value" id="tubeHealthValue">100</span>
+          </div>
+
+          <!-- Damage per Collision -->
+          <label for="collisionDamage">Damage per Collision:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="collisionDamage"
+              min="1"
+              max="50"
+              step="1"
+              value="20"
+            />
+            <span class="slider-value" id="collisionDamageValue">10</span>
+          </div>
+
+          <!-- Jump Height -->
+          <label for="jumpHeight">Jump Height:</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="jumpHeight"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value="1"
+            />
+            <span class="slider-value" id="jumpHeightValue">1</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- Color Selection Section -->
+      <div class="settings-section">
+        <h3>Select Your Tube Color:</h3>
+        <div class="color-options">
+          <div
+          class="color-option"
+          data-color="#007bff"
+          style="background-color: #007bff"
+        ></div>
+        <div
+          class="color-option"
+          data-color="#ffc107"
+          style="background-color: #ffc107"
+        ></div>
+        <div
+          class="color-option"
+          data-color="#6f42c1"
+          style="background-color: #6f42c1"
+        ></div>
+        <div
+          class="color-option"
+          data-color="#fd7e14"
+          style="background-color: #fd7e14"
+        ></div>
+        <div
+          class="color-option"
+          data-color="#e83e8c"
+          style="background-color: #e83e8c"
+        ></div>
+        </div>
+      </div>
+
+      <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Countdown Screen -->
+    <div id="countdownScreen" style="display: none">
+      <h1 id="countdownNumber">Loading</h1>
+    </div>
+
+    <!-- Red Vignette Overlay -->
+    <div id="vignette"></div>
+
+    <!-- Finish Screen -->
+    <div id="finishScreen" style="display: none">
+      <h1 id="gameOverTitle">Game Over!</h1>
+      <p id="finalMessage"></p>
+      <p id="finalTime"></p>
+      <p id="finalCoins"></p>
+      <button onclick="restartGame()">Play Again</button>
+    </div>
+
+    <canvas id="renderCanvas"></canvas>
+    
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+    <script>
+      // Add new global variables
+      let pathPointsGlobal = []; // Array to store path points globally
+      let healthPickups = []; // Array to store health pickup meshes
+      let healthPickupSound;
+       // =======================
+      // Configuration Constants
+      // =======================
+
+      // Game Settings (will be updated from UI)
+      let GAME_SETTINGS = {
+        countdownDuration: 3, // seconds
+        ground: {
+          size: 1000, // Total ground size
+          width: 500, // Ground width
+          slopeAngleDegrees: 10 // Slope angle in degrees
+        },
+        path: {
+          width: 30, // Width of the racing path
+          segments: 100 // Number of segments in the path
+        },
+        obstacles: {
+          countPerSegment: 1, // Number of obstacles per segment
+          size: 2, // Size of each obstacle
+          restitution: 0.7,
+          friction: 0.2
+        },
+        trees: {
+          countPerSide: 1000, // Number of trees per side
+          size: {
+            diameter: 2,
+            height: 10
+          },
+          color: new BABYLON.Color3(0.5, 0.25, 0),
+          physics: {
+            restitution: 0.1,
+            friction: 0.2,
+            radius: 0.5
+          }
+        },
+        startFinishLines: {
+          width: 10,
+          height: 1,
+          colors: {
+            start: new BABYLON.Color3(0, 1, 0), // Green
+            finish: new BABYLON.Color3(1, 0, 0) // Red
+          }
+        },
+        tube: {
+          diameter: 2,
+          thickness: 0.5,
+          tessellation: 32,
+          mass: 1,
+          restitution: 0.7,
+          friction: 0.01,
+          color: "#007bff", // Default color (blue)
+          spawnDropHeight: 2, // New parameter for spawn drop height
+          health: 100, // Default health
+          collisionDamage: 10, // Damage per collision
+          groundedDistance: 1 // Distance to consider the tube grounded
+        },
+        camera: {
+          offset: new BABYLON.Vector3(0, 10, -20),
+          speed: 0.5
+        },
+        controls: {
+          forceMagnitude: 50, // Magnitude of the applied force
+          inputForceScale: 0.25, // Scaling factor for input
+          boostForceMagnitude: 100, // Boost force magnitude
+          boostSpeedThreshold: 5, // Speed threshold for boost eligibility
+          jumpHeight: 1 // Default jump height
+        },
+        physics: {
+          gravity: new BABYLON.Vector3(0, -9.81, 0) // Will be updated from UI
+        },
+        startPosition: {
+          z: -500 + 20 // Derived from ground.size / 2
+        },
+        finishPosition: {
+          z: 500 - 5 // Derived from ground.size / 2
+        },
+        startLineY: 0 // To store the Y position of the start line
+      };
+
+      // =====================
+      // Global Variables
+      // =====================
+      let engine, scene, canvas;
+      let tube, camera, birdEyeCamera, tubeAggregate;
+      let inputMap = {};
+      let startTime,
+        finished = false;
+      let timerDiv = document.getElementById("timer");
+      let coinCounterDiv = document.getElementById("coinCounter");
+      let healthBarDiv = document.getElementById("healthBar");
+      let tubeHealth;
+      let selectedColor = GAME_SETTINGS.tube.color; // Default tube color
+      let coins = []; // Array to store coin meshes
+      let coinsCollected = 0; // Counter for collected coins
+      let collisionSound, coinPickupSound, backgroundMusic;
+      let obstacles = [],
+        trees = [];
+      let lastHitTime = 0; // For collision cooldown
+      let ground; // Make ground accessible globally
+
+      // =====================
+      // Handle Color Selection
+      // =====================
+      const colorOptions = document.querySelectorAll(".color-option");
+      colorOptions.forEach((option) => {
+        option.addEventListener("click", () => {
+          // Remove selection from all
+          colorOptions.forEach((opt) => opt.classList.remove("color-selected"));
+          // Add selection to clicked
+          option.classList.add("color-selected");
+          // Set selected color
+          selectedColor = option.getAttribute("data-color");
+        });
+      });
+
+      // Set default selection
+      colorOptions[0].classList.add("color-selected");
+
+      // =====================
+      // Start Game Function
+      // =====================
+      async function startGame() {
+        // Hide start screen
+        document.getElementById("startScreen").style.display = "none";
+        // Show countdown screen
+        document.getElementById("countdownScreen").style.display = "flex";
+        // Hide timer, coin counter, and health bar during countdown
+        timerDiv.style.display = "none";
+        coinCounterDiv.style.display = "none";
+        healthBarDiv.style.display = "none";
+        coinCounterDiv.innerText = "Coins: 0";
+        coinsCollected = 0;
+
+        // Update GAME_SETTINGS from UI inputs
+        updateGameSettingsFromUI();
+
+        // Create the base scene without the tube
+        scene = await createBaseScene();
+
+        // Load sounds
+        loadSounds();
+
+        // Set active camera to birdEyeCamera for countdown
+        scene.activeCamera = birdEyeCamera;
+
+        // Start the render loop
+        engine.runRenderLoop(() => {
+          scene.render();
+        });
+
+        // Start the countdown
+        let countdown = GAME_SETTINGS.countdownDuration;
+        const countdownNumber = document.getElementById("countdownNumber");
+        countdownNumber.innerText = countdown; // Set initial countdown value
+        const countdownInterval = setInterval(() => {
+          countdown--;
+          if (countdown > 0) {
+            countdownNumber.innerText = countdown;
+          } else {
+            clearInterval(countdownInterval);
+            // Hide countdown screen
+            document.getElementById("countdownScreen").style.display = "none";
+            // Show timer, coin counter, and health bar
+            timerDiv.style.display = "block";
+            coinCounterDiv.style.display = "block";
+            healthBarDiv.style.display = "block";
+            // Spawn the tube and switch to main camera
+            spawnTubeAndStartGame();
+          }
+        }, 1000);
+      }
+
+      // =====================
+      // Restart Game Function
+      // =====================
+      function restartGame() {
+        location.reload();
+      }
+
+      // =====================
+      // Update GAME_SETTINGS from UI
+      // =====================
+      function updateGameSettingsFromUI() {
+        // Get values from input fields
+        const countdownDuration =
+          parseInt(document.getElementById("countdownDuration").value) || 3;
+        const groundSize =
+          parseInt(document.getElementById("groundSize").value) || 1000;
+        const slopeAngle =
+          parseFloat(document.getElementById("slopeAngle").value) || 10;
+        const pathWidth =
+          parseInt(document.getElementById("pathWidth").value) || 30;
+        const obstaclesPerSegment =
+          parseInt(document.getElementById("obstaclesPerSegment").value) || 1;
+        const treesPerSide =
+          parseInt(document.getElementById("treesPerSide").value) || 1000;
+        const tubeDiameter =
+          parseFloat(document.getElementById("tubeDiameter").value) || 2;
+        const tubeThickness =
+          parseFloat(document.getElementById("tubeThickness").value) || 0.6;
+        const cameraSpeed =
+          parseFloat(document.getElementById("cameraSpeed").value) || 0.5;
+        const gravityMagnitude =
+          parseFloat(document.getElementById("gravityMagnitude").value) || 9.81;
+        const tubeRestitution =
+          parseFloat(document.getElementById("tubeRestitution").value) || 0.7;
+        const tubeFriction =
+          parseFloat(document.getElementById("tubeFriction").value) || 0.01;
+        const tubeSpawnDropHeight =
+          parseFloat(document.getElementById("tubeSpawnDropHeight").value) || 2;
+        const tubeHealth =
+          parseInt(document.getElementById("tubeHealth").value) || 100;
+        const collisionDamage =
+          parseInt(document.getElementById("collisionDamage").value) || 10;
+        const jumpHeight =
+          parseFloat(document.getElementById("jumpHeight").value) || 1;
+
+        // Update GAME_SETTINGS
+        GAME_SETTINGS.countdownDuration = countdownDuration;
+        GAME_SETTINGS.ground.size = groundSize;
+        GAME_SETTINGS.ground.slopeAngleDegrees = slopeAngle;
+        GAME_SETTINGS.path.width = pathWidth;
+        GAME_SETTINGS.obstacles.countPerSegment = obstaclesPerSegment;
+        GAME_SETTINGS.trees.countPerSide = treesPerSide;
+        GAME_SETTINGS.tube.diameter = tubeDiameter;
+        GAME_SETTINGS.tube.thickness = tubeThickness;
+        GAME_SETTINGS.camera.speed = cameraSpeed;
+        GAME_SETTINGS.physics.gravity = new BABYLON.Vector3(
+          0,
+          -gravityMagnitude,
+          0
+        );
+        GAME_SETTINGS.tube.restitution = tubeRestitution;
+        GAME_SETTINGS.tube.friction = tubeFriction;
+        GAME_SETTINGS.tube.spawnDropHeight = tubeSpawnDropHeight;
+        GAME_SETTINGS.tube.health = tubeHealth;
+        GAME_SETTINGS.tube.collisionDamage = collisionDamage;
+        GAME_SETTINGS.controls.jumpHeight = jumpHeight;
+        // Update start and finish positions based on ground size
+        GAME_SETTINGS.startPosition.z = -groundSize / 2 + 20;
+        GAME_SETTINGS.finishPosition.z = groundSize / 2 - 5;
+      }
+
+      // =====================
+      // Load Sounds Function
+      // =====================
+      function loadSounds() {
+        // Background Music
+        backgroundMusic = new BABYLON.Sound(
+          "backgroundMusic",
+          "https://cdn.pixabay.com/download/audio/2024/11/05/audio_948e40b121.mp3?filename=video-game-boss-fiight-259885.mp3",
+          scene,
+          null,
+          {
+            loop: true,
+            autoplay: true,
+            volume: 0.5
+          }
+        );
+
+        // Coin Pickup Sound
+        coinPickupSound = new BABYLON.Sound(
+          "coinPickup",
+          "https://cdn.pixabay.com/download/audio/2024/08/07/audio_a88b4e255c.mp3?filename=coin-recieved-230517.mp3",
+          scene,
+          null,
+          {
+            loop: false,
+            autoplay: false,
+            volume: 1.0
+          }
+        );
+
+        // Collision Sound
+        collisionSound = new BABYLON.Sound(
+          "collisionSound",
+          "https://cdn.pixabay.com/download/audio/2022/03/10/audio_7111d17a49.mp3?filename=bonk-sound-effect-36055.mp3",
+          scene,
+          null,
+          {
+            loop: false,
+            autoplay: false,
+            volume: 1.0
+          }
+        );
+
+        // Health Pickup Sound
+        healthPickupSound = new BABYLON.Sound(
+          "healthPickup",
+          "https://cdn.pixabay.com/download/audio/2022/03/10/audio_80d46d9664.mp3?filename=healpop-46004.mp3",
+          scene,
+          null,
+          {
+            loop: false,
+            autoplay: false,
+            volume: 1.0
+          }
+        );
+      }
+
+ 
+      // =====================
+      // Create Base Scene
+      // =====================
+      const createBaseScene = async () => {
+        canvas = document.getElementById("renderCanvas");
+        engine = new BABYLON.Engine(canvas, true, {
+          preserveDrawingBuffer: true,
+          stencil: true
+        });
+
+        const newScene = new BABYLON.Scene(engine);
+
+        // Enable physics with Havok
+        const havok = await HavokPhysics();
+        const physics = new BABYLON.HavokPlugin(true, havok);
+        newScene.enablePhysics(GAME_SETTINGS.physics.gravity, physics);
+
+        // Create a hemispheric light
+        const light = new BABYLON.HemisphericLight(
+          "hemiLight",
+          new BABYLON.Vector3(0, 1, 0),
+          newScene
+        );
+        light.intensity = 0.9;
+
+        // Create the ground with a slope
+        const groundSize = GAME_SETTINGS.ground.size;
+        const groundWidth = GAME_SETTINGS.ground.width;
+        const slopeAngleDegrees = GAME_SETTINGS.ground.slopeAngleDegrees;
+        const slopeAngleRadians = BABYLON.Tools.ToRadians(slopeAngleDegrees);
+        ground = BABYLON.MeshBuilder.CreateGround(
+          "ground",
+          { width: groundWidth, height: groundSize },
+          newScene
+        );
+        ground.rotation.x = slopeAngleRadians;
+        ground.position.y = -5;
+
+        // Set the ground color to white
+        const groundMaterial = new BABYLON.StandardMaterial(
+          "groundMat",
+          newScene
+        );
+        groundMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1); // White color
+        ground.material = groundMaterial;
+
+        // Add physics to the ground
+        const groundPhysicsOptions = {
+          mass: 0,
+          restitution: 0.1,
+          friction: 0.2
+        };
+        new BABYLON.PhysicsAggregate(
+          ground,
+          BABYLON.PhysicsShapeType.BOX,
+          groundPhysicsOptions,
+          newScene,
+          { extents: new BABYLON.Vector3(groundWidth / 2, 0.1, groundSize / 2) }
+        );
+
+        // Add Glow Layer
+        const glowLayer = new BABYLON.GlowLayer("glow", newScene);
+        glowLayer.intensity = 0.5; // Adjust as needed
+
+        // Create the skybox
+        const skybox = BABYLON.MeshBuilder.CreateBox(
+          "skyBox",
+          { size: 10000 },
+          newScene
+        );
+        const skyboxMaterial = new BABYLON.StandardMaterial("skyBox", newScene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.disableLighting = true;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(
+          "https://playground.babylonjs.com/textures/skybox",
+          newScene
+        );
+        skyboxMaterial.reflectionTexture.coordinatesMode =
+          BABYLON.Texture.SKYBOX_MODE;
+        skybox.material = skyboxMaterial;
+
+        // Define the bird's eye view camera
+        birdEyeCamera = new BABYLON.ArcRotateCamera(
+          "BirdEyeCam",
+          BABYLON.Tools.ToRadians(90),
+          BABYLON.Tools.ToRadians(80),
+          400,
+          new BABYLON.Vector3(0, 0, 0),
+          newScene
+        );
+        birdEyeCamera.attachControl(canvas, true);
+
+        birdEyeCamera.lowerRadiusLimit = 300;
+        birdEyeCamera.upperRadiusLimit = 600;
+        birdEyeCamera.wheelPrecision = 50;
+
+              // Define the racing path with curves
+              const pathPoints = [];
+        const pathWidth = GAME_SETTINGS.path.width;
+        const segments = GAME_SETTINGS.path.segments;
+        let currentZ = -groundSize / 2 + 20;
+        let currentX = 0;
+        for (let i = 0; i < segments; i++) {
+          currentZ += groundSize / segments;
+          currentX += Math.random() * 30 - 15;
+          pathPoints.push(new BABYLON.Vector3(currentX, 0, currentZ));
+        }
+        pathPointsGlobal = pathPoints; // Store path points globally
+
+        // Create obstacles
+        const obstacleMesh = BABYLON.MeshBuilder.CreateBox(
+          "obstacleShared",
+          { size: GAME_SETTINGS.obstacles.size },
+          newScene
+        );
+        const obstacleMaterial = new BABYLON.StandardMaterial(
+          "obstacleMat",
+          newScene
+        );
+        obstacleMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0); // Red color
+        obstacleMesh.material = obstacleMaterial;
+        obstacleMesh.isVisible = false;
+
+        for (let i = 0; i < segments - 1; i++) {
+          const obstacleCount = GAME_SETTINGS.obstacles.countPerSegment;
+          for (let j = 0; j < obstacleCount; j++) {
+            const obstacle = obstacleMesh.createInstance(
+              "obstacle" + i + "_" + j
+            );
+            const t = i / (segments - 1);
+            const point = BABYLON.Vector3.Lerp(
+              pathPoints[i],
+              pathPoints[i + 1],
+              Math.random()
+            );
+            const offset =
+              Math.random() * (pathWidth - 2) - (pathWidth - 2) / 2;
+            obstacle.position = new BABYLON.Vector3(
+              point.x + offset,
+              100,
+              point.z
+            );
+
+            // Raycast downward to position the obstacle on the ground
+            const ray = new BABYLON.Ray(
+              obstacle.position,
+              new BABYLON.Vector3(0, -1, 0),
+              200
+            );
+            const hitInfo = newScene.pickWithRay(
+              ray,
+              (mesh) => mesh === ground
+            );
+            if (hitInfo.hit) {
+              obstacle.position = hitInfo.pickedPoint.add(
+                new BABYLON.Vector3(0, 1, 0)
+              );
+              obstacle.rotation.x = slopeAngleRadians;
+
+              // Add physics to the obstacle
+              new BABYLON.PhysicsAggregate(
+                obstacle,
+                BABYLON.PhysicsShapeType.BOX,
+                {
+                  mass: 0,
+                  restitution: GAME_SETTINGS.obstacles.restitution,
+                  friction: GAME_SETTINGS.obstacles.friction
+                },
+                newScene,
+                { extents: new BABYLON.Vector3(1, 1, 1) }
+              );
+
+              obstacles.push(obstacle);
+            } else {
+              obstacle.dispose();
+            }
+          }
+        }
+
+        // Create trees
+        const treeMesh = BABYLON.MeshBuilder.CreateCylinder(
+          "treeShared",
+          {
+            diameter: GAME_SETTINGS.trees.size.diameter,
+            height: GAME_SETTINGS.trees.size.height,
+            tessellation: 6
+          },
+          newScene
+        );
+        const treeMaterial = new BABYLON.StandardMaterial("treeMat", newScene);
+        treeMaterial.diffuseColor = GAME_SETTINGS.trees.color;
+        treeMesh.material = treeMaterial;
+        treeMesh.isVisible = false;
+
+        //add a top cyliner to the tree with a diameter of 0 at the top and 1 at the bottom
+        const treeTopMesh = BABYLON.MeshBuilder.CreateCylinder(
+          "treeTopShared",
+          {
+            diameterTop: 0,
+            diameterBottom: 5,
+            height: 8,
+            tessellation: 6
+          },
+          newScene
+        );
+        //dark green material for trees
+        const treeTopMaterial = new BABYLON.StandardMaterial(
+          "treeTopMat",
+          newScene
+        );
+        treeTopMaterial.diffuseColor = new BABYLON.Color3(0, 0.5, 0);
+        treeTopMesh.material = treeTopMaterial;
+
+        for (let i = 0; i < GAME_SETTINGS.trees.countPerSide; i++) {
+          // Left side trees
+          const t = Math.random();
+          const index = Math.floor(t * (pathPoints.length - 1));
+          const point = pathPoints[index];
+
+          const treeLeft = treeMesh.createInstance("treeLeft" + i);
+
+          treeLeft.position = new BABYLON.Vector3(
+            point.x -
+              pathWidth / 2 -
+              Math.random() * (groundWidth / 2 - pathWidth / 2),
+            100,
+            point.z + (Math.random() * 20 - 10)
+          );
+
+          const rayLeft = new BABYLON.Ray(
+            treeLeft.position,
+            new BABYLON.Vector3(0, -1, 0),
+            200
+          );
+          const hitInfoLeft = newScene.pickWithRay(
+            rayLeft,
+            (mesh) => mesh === ground
+          );
+          if (hitInfoLeft.hit) {
+            treeLeft.position = hitInfoLeft.pickedPoint.add(
+              new BABYLON.Vector3(0, 5, 0)
+            );
+
+            new BABYLON.PhysicsAggregate(
+              treeLeft,
+              BABYLON.PhysicsShapeType.CYLINDER,
+              {
+                mass: 0,
+                restitution: GAME_SETTINGS.trees.physics.restitution,
+                friction: GAME_SETTINGS.trees.physics.friction
+              },
+              newScene,
+              {
+                pointA: new BABYLON.Vector3(0, -5, 0),
+                pointB: new BABYLON.Vector3(0, 5, 0),
+                radius: GAME_SETTINGS.trees.physics.radius
+              }
+            );
+            //add a instance of the top mesh to the tree
+            const treeTop = treeTopMesh.createInstance("treeTop" + i);
+            treeTop.parent = treeLeft;
+            treeTop.position.y = 5;
+
+            trees.push(treeLeft);
+          } else {
+            treeLeft.dispose();
+          }
+
+          // Right side trees
+          const treeRight = treeMesh.createInstance("treeRight" + i);
+
+          treeRight.position = new BABYLON.Vector3(
+            point.x +
+              pathWidth / 2 +
+              Math.random() * (groundWidth / 2 - pathWidth / 2),
+            100,
+            point.z + (Math.random() * 20 - 10)
+          );
+
+          const rayRight = new BABYLON.Ray(
+            treeRight.position,
+            new BABYLON.Vector3(0, -1, 0),
+            200
+          );
+          const hitInfoRight = newScene.pickWithRay(
+            rayRight,
+            (mesh) => mesh === ground
+          );
+          if (hitInfoRight.hit) {
+            treeRight.position = hitInfoRight.pickedPoint.add(
+              new BABYLON.Vector3(0, 5, 0)
+            );
+
+            new BABYLON.PhysicsAggregate(
+              treeRight,
+              BABYLON.PhysicsShapeType.CYLINDER,
+              {
+                mass: 0,
+                restitution: GAME_SETTINGS.trees.physics.restitution,
+                friction: GAME_SETTINGS.trees.physics.friction
+              },
+              newScene,
+              {
+                pointA: new BABYLON.Vector3(0, -5, 0),
+                pointB: new BABYLON.Vector3(0, 5, 0),
+                radius: GAME_SETTINGS.trees.physics.radius
+              }
+            );
+            //add a instance of the top mesh to the tree
+            const treeTopRight = treeTopMesh.createInstance("treeTop" + i);
+            treeTopRight.parent = treeRight;
+            treeTopRight.position.y = 5;
+
+            trees.push(treeRight);
+          } else {
+            treeRight.dispose();
+          }
+        }
+
+        // Create start and finish lines
+        const slopeAngleRadiansFinal = BABYLON.Tools.ToRadians(
+          GAME_SETTINGS.ground.slopeAngleDegrees
+        );
+        const verticalDisplacement =
+          Math.sin(slopeAngleRadiansFinal) * (groundSize / 2 - 15);
+
+        const startLine = BABYLON.MeshBuilder.CreateGround(
+          "startLine",
+          {
+            width: GAME_SETTINGS.startFinishLines.width,
+            height: GAME_SETTINGS.startFinishLines.height
+          },
+          newScene
+        );
+        startLine.position = new BABYLON.Vector3(
+          0,
+          ground.position.y + verticalDisplacement,
+          -groundSize / 2 + 25
+        );
+        startLine.rotation.x = slopeAngleRadiansFinal;
+        const startMat = new BABYLON.StandardMaterial("startMat", newScene);
+        startMat.diffuseColor = GAME_SETTINGS.startFinishLines.colors.start;
+        startLine.material = startMat;
+
+        GAME_SETTINGS.startLineY = startLine.position.y;
+
+        const finishLine = BABYLON.MeshBuilder.CreateGround(
+          "finishLine",
+          {
+            width: GAME_SETTINGS.startFinishLines.width,
+            height: GAME_SETTINGS.startFinishLines.height
+          },
+          newScene
+        );
+        finishLine.position = new BABYLON.Vector3(
+          0,
+          ground.position.y +
+            Math.sin(slopeAngleRadiansFinal) * (groundSize / 2 - 5),
+          groundSize / 2 - 5
+        );
+        finishLine.rotation.x = slopeAngleRadiansFinal;
+        const finishMat = new BABYLON.StandardMaterial("finishMat", newScene);
+        finishMat.diffuseColor = GAME_SETTINGS.startFinishLines.colors.finish;
+        finishLine.material = finishMat;
+
+        // Add Coins to the Scene
+        const coinCount = 50;
+        const coinMesh = BABYLON.MeshBuilder.CreateCylinder(
+          "coinShared",
+          { diameter: 1, height: 0.2, tessellation: 16 },
+          newScene
+        );
+        //rotate coin mesh 90 degrees
+        coinMesh.rotation.z = Math.PI / 2;
+        const coinMaterial = new BABYLON.StandardMaterial("coinMat", newScene);
+        coinMaterial.diffuseColor = new BABYLON.Color3(1, 0.843, 0); // Gold color
+        coinMaterial.emissiveColor = new BABYLON.Color3(1, 0.843, 0); // Emissive gold color
+        coinMesh.material = coinMaterial;
+        coinMesh.isVisible = false;
+
+        for (let i = 0; i < coinCount; i++) {
+          const coin = coinMesh.createInstance("coin" + i);
+          const segmentIndex = Math.floor(
+            Math.random() * (pathPoints.length - 1)
+          );
+          const t = Math.random();
+          const point = BABYLON.Vector3.Lerp(
+            pathPoints[segmentIndex],
+            pathPoints[segmentIndex + 1],
+            t
+          );
+          const offset = Math.random() * (pathWidth - 2) - (pathWidth - 2) / 2;
+          coin.position = new BABYLON.Vector3(point.x + offset, 100, point.z);
+
+          const ray = new BABYLON.Ray(
+            coin.position,
+            new BABYLON.Vector3(0, -1, 0),
+            200
+          );
+          const hitInfo = newScene.pickWithRay(ray, (mesh) => mesh === ground);
+          if (hitInfo.hit) {
+            coin.position = hitInfo.pickedPoint.add(
+              new BABYLON.Vector3(0, .6, 0)
+            );
+            coin.rotation.x = slopeAngleRadiansFinal;
+
+            // Store base Y position and start time for animation
+            coin.baseY = coin.position.y;
+            coin.startTime = performance.now() + Math.random() * 1000; // Randomize start time
+
+            coins.push(coin);
+          } else {
+            coin.dispose();
+          }
+        }
+
+        const pathMaterial = new BABYLON.StandardMaterial("pathMat", newScene);
+        pathMaterial.emissiveColor = new BABYLON.Color3(0, 0, 1); // Green glow
+        pathMaterial.alpha = 0.5;
+
+        // Create the path outline
+     
+        const pathOutline = BABYLON.MeshBuilder.CreateTube(
+          "pathOutline" ,
+          {
+            path: pathPoints,
+            radius: 0.5,
+            tessellation: 8,
+            updatable: false
+          },
+          newScene
+        );
+//rotate the path 10 degrees
+        pathOutline.rotation.x = BABYLON.Tools.ToRadians(10);
+        pathOutline.position.y = -5;
+     
+        //maeke sure the pathoutline is visible
+
+        pathOutline.material = pathMaterial;        
+
+
+        // Create health pickups
+        const healthPickupMesh = BABYLON.MeshBuilder.CreateBox(
+          "healthPickupShared",
+          { size: 1 },
+          newScene
+        );
+        const healthPickupMaterial = new BABYLON.StandardMaterial("healthPickupMat", newScene);
+        healthPickupMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0); // Red color
+        healthPickupMaterial.emissiveColor = new BABYLON.Color3(0, 1, 0); // Red glow
+        healthPickupMesh.material = healthPickupMaterial;
+        healthPickupMesh.isVisible = false;
+
+        // Spawn health pickups along the path
+        const healthPickupCount = 10;
+        for (let i = 0; i < healthPickupCount; i++) {
+          const pickup = healthPickupMesh.createInstance("healthPickup" + i);
+          const segmentIndex = Math.floor(Math.random() * (pathPoints.length - 1));
+          const t = Math.random();
+          const point = BABYLON.Vector3.Lerp(
+            pathPoints[segmentIndex],
+            pathPoints[segmentIndex + 1],
+            t
+          );
+          const offset = Math.random() * (pathWidth - 2) - (pathWidth - 2) / 2;
+          pickup.position = new BABYLON.Vector3(point.x + offset, 100, point.z);
+
+          const ray = new BABYLON.Ray(
+            pickup.position,
+            new BABYLON.Vector3(0, -1, 0),
+            200
+          );
+          const hitInfo = newScene.pickWithRay(ray, (mesh) => mesh === ground);
+          if (hitInfo.hit) {
+            pickup.position = hitInfo.pickedPoint.add(new BABYLON.Vector3(0, 1, 0));
+            pickup.rotation.x = BABYLON.Tools.ToRadians(GAME_SETTINGS.ground.slopeAngleDegrees);
+            
+            pickup.baseY = pickup.position.y;
+            pickup.startTime = performance.now() + Math.random() * 1000;
+            
+            healthPickups.push(pickup);
+          } else {
+            pickup.dispose();
+          }
+        }
+
+        return newScene;
+      };
+
+      // =====================
+      // Spawn Tube and Start Game
+      // =====================
+      const spawnTubeAndStartGame = async () => {
+        // Initialize tube health
+        tubeHealth = GAME_SETTINGS.tube.health;
+        healthBarDiv.innerText = "Health: " + tubeHealth + "%";
+
+        // Create the tube
+        tube = BABYLON.MeshBuilder.CreateTorus(
+          "tube",
+          {
+            diameter: GAME_SETTINGS.tube.diameter,
+            thickness: GAME_SETTINGS.tube.thickness,
+            tessellation: GAME_SETTINGS.tube.tessellation
+          },
+          scene
+        );
+
+        // Calculate the spawn position
+        const tubeSpawnOffsetY = GAME_SETTINGS.tube.spawnDropHeight;
+        tube.position = new BABYLON.Vector3(
+          0,
+          GAME_SETTINGS.startLineY + tubeSpawnOffsetY,
+          GAME_SETTINGS.startPosition.z
+        );
+        tube.rotation.y = BABYLON.Tools.ToRadians(0);
+        tube.rotation.x = BABYLON.Tools.ToRadians(
+          GAME_SETTINGS.ground.slopeAngleDegrees
+        );
+
+        // Apply multicolor texture to the tube
+        const tubeMaterial = new BABYLON.StandardMaterial("tubeMat", scene);
+        const dynamicTexture = new BABYLON.DynamicTexture(
+          "tubeTexture",
+          512,
+          scene,
+          true
+        );
+        tubeMaterial.diffuseTexture = dynamicTexture;
+        tube.material = tubeMaterial;
+
+        // Draw gradient on dynamic texture
+        const ctx = dynamicTexture.getContext();
+        const width = dynamicTexture.getSize().width;
+        const height = dynamicTexture.getSize().height;
+        const selectedColorRGB = BABYLON.Color3.FromHexString(selectedColor);
+        const slightlyOffColor = new BABYLON.Color3(
+          Math.min(selectedColorRGB.r + 0.1, 1),
+          Math.min(selectedColorRGB.g + 0.1, 1),
+          Math.min(selectedColorRGB.b + 0.1, 1)
+        );
+
+        // Create linear gradient
+        const gradient = ctx.createLinearGradient(0, 0, width, 0);
+        gradient.addColorStop(0, selectedColor);
+        gradient.addColorStop(1, slightlyOffColor.toHexString());
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        dynamicTexture.update();
+
+        // Add physics to the tube
+        tubeAggregate = new BABYLON.PhysicsAggregate(
+          tube,
+          BABYLON.PhysicsShapeType.MESH,
+          {
+            mass: GAME_SETTINGS.tube.mass,
+            restitution: GAME_SETTINGS.tube.restitution,
+            friction: GAME_SETTINGS.tube.friction
+          },
+          scene
+        );
+
+        // **Create 5 trails attached to the back of the tube**
+        const trailAttachPoints = [];
+        const numTrails = 3;
+        const angleOffset = Math.PI; // Start at the back of the tube
+        const angleIncrement = (Math.PI * 0.6) / (numTrails - 1); // Spread over a portion of the back
+
+        for (let i = 0; i < numTrails; i++) {
+          const angle = angleOffset - (numTrails / 2 - i) * angleIncrement;
+          const x =
+            (GAME_SETTINGS.tube.diameter / 2 -
+              GAME_SETTINGS.tube.thickness / 2) *
+            Math.cos(angle);
+          const z =
+            (GAME_SETTINGS.tube.diameter / 2 -
+              GAME_SETTINGS.tube.thickness / 2) *
+            Math.sin(angle);
+
+          const attachPoint = new BABYLON.TransformNode(
+            "attachPoint" + i,
+            scene
+          );
+          attachPoint.parent = tube;
+          attachPoint.position = new BABYLON.Vector3(x, 0, z);
+
+          // Create trail for this attach point
+          const trail = new BABYLON.TrailMesh(
+            "tubeTrail" + i,
+            attachPoint,
+            scene,
+            0.1,
+            60,
+            true
+          );
+          const trailMaterial = new BABYLON.StandardMaterial(
+            "trailMat" + i,
+            scene
+          );
+          trailMaterial.emissiveColor =
+            BABYLON.Color3.FromHexString(selectedColor);
+          trailMaterial.diffuseColor = BABYLON.Color3.Black();
+          trailMaterial.specularColor = BABYLON.Color3.Black();
+          trail.material = trailMaterial;
+
+          trailAttachPoints.push(attachPoint);
+        }
+
+        // **Attach collision event to the tube's physics body**
+        scene.onBeforePhysicsObservable.add(() => {
+          // Get the tube's physics body
+          const tubeBody = tubeAggregate.body;
+
+          // Check for collisions with obstacles and trees
+          [...obstacles, ...trees].forEach((obj) => {
+            if (obj.physicsBody) {
+              // Use bounding box intersection for collision detection
+              if (tube.intersectsMesh(obj, false)) {
+                const currentTime = Date.now();
+                if (currentTime - lastHitTime > 500) {
+                  lastHitTime = currentTime;
+
+                  if (!collisionSound.isPlaying) {
+                    collisionSound.play(); // Play collision sound
+                  }
+                  // Reduce health
+                  tubeHealth -= GAME_SETTINGS.tube.collisionDamage;
+                  if (tubeHealth < 0) tubeHealth = 0;
+                  healthBarDiv.innerText = "Health: " + tubeHealth + "%";
+
+                  // Trigger red vignette effect
+                  triggerVignetteEffect();
+
+                  if (tubeHealth <= 0 && !finished) {
+                    // Game over
+                    finished = true;
+                    timerDiv.style.display = "none";
+                    coinCounterDiv.style.display = "none";
+                    healthBarDiv.style.display = "none";
+                    document.getElementById("finishScreen").style.display =
+                      "flex";
+                    document.getElementById("gameOverTitle").innerText =
+                      "Game Over!";
+                    document.getElementById("finalMessage").innerText =
+                      "You ran out of health.";
+                    document.getElementById("finalTime").innerText =
+                      "Your Time: " +
+                      ((Date.now() - startTime) / 1000).toFixed(2) +
+                      " seconds";
+                    document.getElementById("finalCoins").innerText =
+                      "Coins Collected: " + coinsCollected;
+                    engine.stopRenderLoop();
+                    if (backgroundMusic) {
+                      backgroundMusic.stop();
+                    }
+                  }
+                }
+              }
+            }
+          });
+        });
+
+        // Create and configure the main game camera
+        camera = new BABYLON.UniversalCamera(
+          "UniversalCam",
+          new BABYLON.Vector3(0, 10, GAME_SETTINGS.startPosition.z - 20),
+          scene
+        );
+        camera.attachControl(canvas, true);
+        camera.speed = GAME_SETTINGS.camera.speed;
+
+        // Disable camera inputs
+        camera.inputs.clear();
+
+        // Switch to main game camera
+        scene.activeCamera = camera;
+
+        // Start the game timer
+        startTime = Date.now();
+        scene.onBeforeRenderObservable.add(() => {
+            if (startTime && !finished) {
+              // Check for health pickup collection
+              healthPickups.forEach((pickup, index) => {
+                if (pickup && !pickup.isDisposed()) {
+                  const distance = BABYLON.Vector3.Distance(
+                    tube.position,
+                    pickup.position
+                  );
+                  if (distance < 2) {
+                    // Collect the health pickup
+                    tubeHealth = Math.min(tubeHealth + 20, 100); // Add 20 health, max 100
+                    healthBarDiv.innerText = "Health: " + tubeHealth + "%";
+                    healthPickupSound.play();
+                    pickup.dispose();
+                    healthPickups[index] = null;
+                  }
+
+                  // Animate health pickup
+                  const time = performance.now() - pickup.startTime;
+                  pickup.position.y = pickup.baseY + Math.sin(time / 500) * 0.2;
+                  pickup.rotation.y += 0.02;
+                }
+              });
+
+            const timeElapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+            timerDiv.innerText = "Time: " + timeElapsed;
+
+            // Check if the tube has crossed the finish line
+            if (tube.position.z > GAME_SETTINGS.finishPosition.z) {
+              finished = true;
+              timerDiv.style.display = "none";
+              coinCounterDiv.style.display = "none";
+              healthBarDiv.style.display = "none";
+              document.getElementById("finishScreen").style.display = "flex";
+              document.getElementById("gameOverTitle").innerText = "You Win!";
+              document.getElementById("finalMessage").innerText =
+                "Congratulations, you reached the finish line!";
+              document.getElementById("finalTime").innerText =
+                "Your Time: " + timeElapsed + " seconds";
+              document.getElementById("finalCoins").innerText =
+                "Coins Collected: " + coinsCollected;
+              engine.stopRenderLoop();
+              if (backgroundMusic) {
+                backgroundMusic.stop();
+              }
+            }
+
+            // Check for coin collection
+            coins.forEach((coin, index) => {
+              if (coin && !coin.isDisposed()) {
+                const distance = BABYLON.Vector3.Distance(
+                  tube.position,
+                  coin.position
+                );
+                if (distance < 2) {
+                  // Collect the coin
+                  coinsCollected++;
+                  coinCounterDiv.innerText = "Coins: " + coinsCollected;
+                  coinPickupSound.play();
+                  coin.dispose();
+                  coins[index] = null;
+                }
+              }
+            });
+
+            // Rotate and float coins
+            coins.forEach((coin) => {
+              if (coin && !coin.isDisposed()) {
+                // Rotate coin
+                coin.rotation.y += 0.02; // Adjust rotation speed as needed
+
+                // Float coin
+                const time = performance.now() - coin.startTime;
+                coin.position.y = coin.baseY + Math.sin(time / 500) * 0.2; // Adjust amplitude and speed
+              }
+            });
+
+            // Update camera position and orientation
+            updateCamera();
+          }
+         
+        });
+
+        // Player controls using keyboard
+        scene.actionManager = new BABYLON.ActionManager(scene);
+        scene.actionManager.registerAction(
+          new BABYLON.ExecuteCodeAction(
+            BABYLON.ActionManager.OnKeyDownTrigger,
+            function (evt) {
+              const key = evt.sourceEvent.key.toLowerCase();
+              inputMap[key] = true;
+            }
+          )
+        );
+        scene.actionManager.registerAction(
+          new BABYLON.ExecuteCodeAction(
+            BABYLON.ActionManager.OnKeyUpTrigger,
+            function (evt) {
+              const key = evt.sourceEvent.key.toLowerCase();
+              inputMap[key] = false;
+            }
+          )
+        );
+
+        // Apply forces based on player input
+        scene.onBeforeRenderObservable.add(() => {
+          if (finished) {
+            return;
+          }
+          let forceDirection = new BABYLON.Vector3(0, 0, 0);
+          if (inputMap["arrowleft"] || inputMap["a"]) {
+            forceDirection.x -= GAME_SETTINGS.controls.inputForceScale;
+          }
+          if (inputMap["arrowright"] || inputMap["d"]) {
+            forceDirection.x += GAME_SETTINGS.controls.inputForceScale;
+          }
+
+          // Only allow boost when below certain speed
+          const tubeVelocity = tubeAggregate.body.getLinearVelocity();
+          const speed = tubeVelocity.length();
+
+          if (inputMap["arrowforward"] || inputMap["w"]) {
+            // Space bar for boost
+            if (speed < GAME_SETTINGS.controls.boostSpeedThreshold) {
+              forceDirection.z += GAME_SETTINGS.controls.inputForceScale;
+            }
+          }
+          if (inputMap[" "]) {
+            if (isTubeGrounded()) {
+              // Apply jump force only if grounded
+              forceDirection.y += GAME_SETTINGS.controls.jumpHeight;
+            }
+          }
+          // Apply force relative to the slope's orientation
+          if (forceDirection.lengthSquared() > 0) {
+            if (tubeAggregate && tubeAggregate.body) {
+              const slopeAngleRadians = BABYLON.Tools.ToRadians(
+                GAME_SETTINGS.ground.slopeAngleDegrees
+              );
+              const rotationMatrix = BABYLON.Matrix.RotationX(
+                -slopeAngleRadians
+              );
+              const forceVector = BABYLON.Vector3.TransformCoordinates(
+                forceDirection,
+                rotationMatrix
+              );
+              const appliedForce = forceVector.scale(
+                forceDirection.z > 0
+                  ? GAME_SETTINGS.controls.boostForceMagnitude
+                  : GAME_SETTINGS.controls.forceMagnitude
+              );
+              tubeAggregate.body.applyForce(appliedForce, tube.position);
+            }
+          }
+        });
+
+        // Function to update camera's position and orientation
+        function updateCamera() {
+          const fixedOffset = GAME_SETTINGS.camera.offset;
+          const newCameraPosition = tube.position.add(fixedOffset);
+          camera.position = newCameraPosition;
+          const lookAtOffset = new BABYLON.Vector3(0, 0, 1);
+          const lookAtPoint = tube.position.add(lookAtOffset);
+          camera.setTarget(lookAtPoint);
+        }
+      };
+
+      // Function to check if the tube is grounded
+      function isTubeGrounded() {
+        const ray = new BABYLON.Ray(
+          tube.position,
+          new BABYLON.Vector3(0, -1, 0),
+          GAME_SETTINGS.tube.groundedDistance || 1
+        );
+        const hitInfo = scene.pickWithRay(ray, (mesh) => mesh === ground);
+        return hitInfo.hit;
+      }
+
+      // Function to trigger red vignette effect
+      function triggerVignetteEffect() {
+        const vignette = document.getElementById("vignette");
+        vignette.style.opacity = 1;
+        setTimeout(() => {
+          vignette.style.opacity = 0;
+        }, 200); // Vignette stays visible for 200 milliseconds
+      }
+
+      // =====================
+      // Initialize Engine on DOM Load
+      // =====================
+      window.addEventListener("DOMContentLoaded", () => {
+        canvas = document.getElementById("renderCanvas");
+        engine = new BABYLON.Engine(canvas, true, {
+          preserveDrawingBuffer: true,
+          stencil: true
+        });
+
+        // Update slider values display
+        const sliders = document.querySelectorAll(
+          '.slider-container input[type="range"]'
+        );
+        sliders.forEach((slider) => {
+          const valueSpan = slider.parentElement.querySelector(".slider-value");
+          valueSpan.innerText = slider.value; // Initialize display
+          slider.addEventListener("input", () => {
+            valueSpan.innerText = slider.value;
+          });
+        });
+      });
+
+      // =====================
+      // Handle Window Resize
+      // =====================
+      window.addEventListener("resize", function () {
+        if (engine) {
+          engine.resize();
+        }
+      });
+    </script>
+  </body>
+</html>
