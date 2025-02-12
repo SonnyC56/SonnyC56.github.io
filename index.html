@@ -3,119 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonnys Portfolio Examples/Pages</title>
+    <title>Sonny's Arcade Cabinet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Reset some default styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+                opacity: 1;
+            }
+            20%, 22%, 24%, 55% {
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes scanline {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            font-family: 'Press Start 2P', cursive;
+            background-color: #000;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #333;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            animation: scanline 10s linear infinite;
         }
 
         header {
             text-align: center;
             margin-bottom: 40px;
+            animation: flicker 2s infinite;
         }
 
         header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            color: #4a90e2;
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #0f0;
+            text-transform: uppercase;
         }
 
         header p {
-            font-size: 1.2em;
-            color: #555;
+            font-size: 0.8em;
+            color: #0f0;
         }
 
         .container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
             width: 80%;
-            max-width: 1000px;
+            max-width: 1200px;
+            padding: 20px;
         }
 
         .card {
-            background: white;
+            background: #111;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 2px solid #0f0;
+            border-radius: 5px;
             text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(0, 255, 0, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #0f0;
         }
 
         .card a {
             text-decoration: none;
-            color: #4a90e2;
-            font-size: 1.1em;
-            font-weight: bold;
+            color: #0f0;
+            font-size: 0.9em;
+            display: block;
+            padding: 10px;
         }
 
         .card a:hover {
-            color: #2a6496;
+            color: #fff;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        .home-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #0f0;
+            font-size: 0.8em;
+            padding: 10px;
+            border: 2px solid #0f0;
+            border-radius: 5px;
+            background: #111;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .home-link:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #0f0;
+            color: #fff;
+            text-shadow: 0 0 10px #0f0;
         }
 
         footer {
             margin-top: 60px;
-            font-size: 0.9em;
-            color: #888;
+            font-size: 0.6em;
+            color: #0f0;
+            opacity: 0.7;
         }
 
         @media (max-width: 600px) {
             header h1 {
-                font-size: 2em;
+                font-size: 1.5em;
             }
 
             .container {
-                width: 90%;
+                width: 95%;
+                gap: 15px;
+            }
+
+            .card {
+                padding: 15px;
             }
         }
     </style>
 </head>
 <body>
-
+    <a href="https://sonnycirasuolo.com" class="home-link">HOME</a>
     <header>
-        <h1>Welcome to my portfolio of stand alone html pages</h1>
-        <p>Select a page below to explore:</p>
+        <h1>SONNY'S ARCADE</h1>
+        <p>INSERT COIN TO PLAY</p>
     </header>
 
     <div class="container">
-        <!-- Repeat this block for each page in the subdirectory -->
         <div class="card">
-            <a href="https://underwaterfirefighting.netlify.app/">Underwater Firefighter</a>
-        </div>
-           <div class="card">
-            <a href="pages/golfGameDemo.html">Golf Babylon Demo</a>
+            <a href="https://underwaterfirefighting.netlify.app/">UNDERWATER FIREFIGHTER</a>
         </div>
         <div class="card">
-            <a href="pages/skiGameDemo.html">Ski/Tubing Babylon Demo</a>
+            <a href="pages/golfGameDemo.html">GOLF BABYLON</a>
         </div>
-
+        <div class="card">
+            <a href="pages/skiGameDemo.html">SKI BABYLON</a>
+        </div>
         
-        <!-- Add more cards as needed -->
-
     </div>
 
     <footer>
-        &copy; 2024 Your Name. All rights reserved.
+        &copy; 2025 Sonny Cirasuolo Inc.
     </footer>
-
 </body>
 </html>
