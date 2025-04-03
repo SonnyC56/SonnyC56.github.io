@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sonny Cirasuolo – Resume</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .contact a {
+      color: #007acc;
+      text-decoration: none;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+      page-break-inside: avoid;
+    }
+
+    h2 {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+      margin-top: 2rem;
+      font-size: 1.25rem;
+    }
+
+    .job {
+      margin-bottom: 1.5rem;
+      page-break-inside: avoid;
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      align-items: baseline;
+    }
+
+    .job-employer {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .job-role {
+      font-weight: 500;
+      font-size: 1rem;
+      margin-top: 0.15rem;
+    }
+
+    .job-dates {
+      font-size: 0.9rem;
+      color: #666;
+      text-align: right;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .button-wrapper {
+      text-align: right;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #005fa3;
+    }
+
+    @media print {
+      button {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="button-wrapper">
+  <button onclick="downloadPDF()">Download PDF</button>
+</div>
+
+<div class="container" id="resume">
+  <h1>Sonny Cirasuolo</h1>
+  <p class="contact">
+    <a href="mailto:the@sonnycirasuolo.com">the@sonnycirasuolo.com</a> |
+    <a href="http://sonnycirasuolo.com" target="_blank">sonnycirasuolo.com</a> |
+    <a href="http://linkedin.com/in/cirasuolo" target="_blank">LinkedIn</a> |
+    Upstate New York
+  </p>
+
+  <p><strong>XR Engineer & Creative Technologist</strong> crafting immersive experiences, real-time web apps, and interactive 3D stories. Proficient in photogrammetry, real-time communication tools, and intuitive storytelling systems.</p>
+
+  <div class="section">
+    <h2>Professional Experience</h2>
+
+    <div class="job">
+      <div class="job-header">
+        <div>
+          <div class="job-employer">Yahoo Sports</div>
+          <div class="job-role">Augmented Reality and Video Producer</div>
+        </div>
+        <div class="job-dates">Spring 2021 – Summer 2022</div>
+      </div>
+      <ul>
+        <li>Produced interactive projects across editorial verticals including sports, news, and finance</li>
+        <li>Embedded 3D/AR content in long-form features across Yahoo brands</li>
+        <li>Created an interactive curling explainer for the 2022 Beijing Olympics</li>
+        <li>Handled 3D design, animation, and video production for breaking news</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-header">
+        <div>
+          <div class="job-employer">NOWHERE.io</div>
+          <div class="job-role">Creative Technologist and XR Engineer</div>
+        </div>
+        <div class="job-dates">Summer 2022 – Late 2024</div>
+      </div>
+      <ul>
+        <li>Designed and built immersive 3D web environments using Babylon.js for a real-time social platform</li>
+        <li>Maintained the Blender plugin and optimized pipelines for web deployment</li>
+        <li>Managed live syncing of player state across users using WebSockets, driving real-time interactivity and presence</li>
+        <li>Collaborated with designers and engineers to evolve the platform’s spatial UX, visual language and features</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-header">
+        <div>
+          <div class="job-employer">The New Yorker</div>
+          <div class="job-role">Immersive Story Developer – "Cleared by Fire"</div>
+        </div>
+        <div class="job-dates">Late 2024</div>
+      </div>
+      <ul>
+        <li>Optimized all 3D scenes for the web, cleaning up meshes and textures to run efficiently in-browser</li>
+        <li>Contributed to front-end engineering of the story experience and helped ship the final site</li>
+        <li>Ensured mobile performance and responsiveness during critical final weeks of production</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-header">
+        <div>
+          <div class="job-employer">StorySplat</div>
+          <div class="job-role">Founder and Sole Developer</div>
+        </div>
+        <div class="job-dates">2024 – Present</div>
+      </div>
+      <ul>
+        <li>Built a no-code visual editor for cinematic 3D storytelling using Gaussian splats</li>
+        <li>Included fly-throughs, spatial audio, annotations, and interactive hotspots</li>
+        <li>Developed Firebase backend with full auth, account management, media hosting, Firestore</li>
+        <li>Integrated Stripe and user account subsriptions</li>
+        <li>Allow users to share or embed StorySplats easily</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Education</h2>
+    <p><strong>Syracuse University</strong> — B.A. Advertising (Newhouse) & Policy Studies (Maxwell)<br />Graduated 2021 | Dean’s List</p>
+    <ul>
+      <li>Led award-winning project <em>Visualizing 81</em> using photogrammetry and WebXR</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Skills</h2>
+    <ul>
+      <li><strong>The Web:</strong> Babylon.js, React, TypeScript, Three.js, Firebase, node.js</li>
+      <li><strong>Photogrammetry:</strong> RealityCapture, 3D reconstruction, Gaussian Splatting, 3D Scanning</li>
+      <li><strong>3D Model Optimization:</strong> Web-optimized asset creation via Blender</li>
+      <li><strong>Game Engines:</strong> Unity, Unreal Engine – AR/VR prototyping</li>
+      <li><strong>Immersive Storytelling:</strong> Narrative design, interactive & spatial UX</li>
+      <li><strong>Game Design & World Building: </strong>  Creation of immersive 3d worlds and engaging games</li>     
+      <li><strong>Media Production:</strong> Adobe Suite, 360° video, audio editing</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Additional Experience</h2>
+    <ul>
+      <li>Mobile Game Developer, Boys & Girls Club – built and published <em>Pandemic Pandemonium</em></li>
+      <li>VR/AR Research Assistant, Syracuse – WebXR development and 3D capture projects</li>
+      <li>Internships: Masonic Research Lab, ConMed, USA Today, Team Brindisi</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  function downloadPDF() {
+    const element = document.getElementById('resume');
+    const opt = {
+      margin:       [0.5, 0.5],
+      filename:     'SonnyCirasuolo_Resume.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    html2pdf().set(opt).from(element).save();
+  }
+</script>
+
+</body>
+</html>
